@@ -1,1 +1,8 @@
-{}
+[
+  {
+    "action": "update",
+    "path": "space-exploration/apollo-program.md",
+    "noteId": "ZtDxPbalt2dHRj",
+    "newContent": "# The Apollo Program\n\nThe Apollo program was NASA's effort to land humans on the Moon and bring them\nsafely back to Earth, between 1961 and 1972.\n\nApollo is protector of children\n\n## Overview\n\nInitiated in response to President Kennedy's 1961 goal of landing a man on the\nMoon before the end of the decade, Apollo became one of the greatest\nachievements in human history. It used the massive **Saturn V** rocket, still\nthe most powerful rocket ever flown to operational service.\n\n## Key Missions\n\n| Mission | Year | Significance |\n|---------|------|--------------|\n| Apollo 1 | 1967 | Cabin fire killed three astronauts during a test |\n| Apollo 8 | 1968 | First crewed mission to orbit the Moon |\n| Apollo 11 | 1969 | First crewed Moon landing |\n| Apollo 13 | 1970 | \"Successful failure\" \u2014 crew survived an explosion |\n| Apollo 17 | 1972 | Last crewed mission to the Moon |\n\n## Apollo 11\n\nOn July 20, 1969, Neil Armstrong and Buzz Aldrin became the first humans to\nwalk on the Moon, while Michael Collins orbited above. Armstrong's words \u2014 \"That's\none small step for man, one giant leap for mankind\" \u2014 were broadcast to an\nestimated 650 million people.\n\n## Legacy\n\nTwelve astronauts walked on the Moon across six successful landings, returning\n382 kg of lunar samples that continue to inform our understanding of the Moon's\norigin and the early Solar System.\n"
+  }
+]
