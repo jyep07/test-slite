@@ -3,7 +3,7 @@
 The Moon is Earth's only natural satellite and the fifth largest moon in the
 Solar System.
 
-## Quick Facts
+## Some Quick Facts
 
 | Property | Value |
 |----------|-------|
@@ -17,8 +17,7 @@ Solar System.
 ## Overview
 
 The Moon formed about 4.5 billion years ago, likely from debris left after a
-Mars-sized body collided with the early Earth. It is tidally locked, meaning the
-same side always faces Earth. The Moon's gravity drives ocean tides and helps
+Mars-sized body collided with the early Earth. It is tidally locked. The Moon's gravity drives ocean tides and helps
 stabilize Earth's axial tilt.
 
 ## Notable Features
