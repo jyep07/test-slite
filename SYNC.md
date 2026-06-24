@@ -57,55 +57,9 @@ environment sets `SYNC_ALLOW_WRITES=1`, which **Routine B** does and **Routine A
   hooks/slite-readonly-guard.sh  blocks Slite writes unless SYNC_ALLOW_WRITES=1
 ```
 
-## ⭐ Tester v1 — one-way git → Slite (dry run)
-
-Start here. This proves the plumbing with **zero write risk**: it *reads* Slite to show
-before/after, but the `PreToolUse` guard makes Slite writes impossible (Routine A's
-environment does not set `SYNC_ALLOW_WRITES`). It detects which repo docs changed since
-the baseline and writes a plan; you review the plan in a PR. Graduate to the full design
-below once it looks right.
-
-**Routine:** one routine, trigger = manual **Run now**.
-**Repository:** `jyep07/test-slite`  **Connectors:** Slite (reads only; writes hard-blocked by the hook)  **Branch pushes:** `claude/` prefix.
-**Environment:** do **not** set `SYNC_ALLOW_WRITES` (leaving it unset keeps the run read-only).
-
-**Prompt (paste verbatim):**
-
-> You are dry-running a one-way sync from this repo's docs to Slite. This run is
-> read-only on Slite: a PreToolUse hook will block any Slite write tool, so only
-> propose changes — never apply them.
->
-> 1. Read `.sync/slite-map.json` and `.sync/baseline/`.
-> 2. For each path in the map's `docs`, compare the current repo file against its
->    `.sync/baseline/<path>` copy.
-> 3. For every file that differs (or is missing from the baseline), add an entry to
->    `.sync/pending-slite-changes.json`:
->    `{ "action": "update", "path": "<path>", "noteId": "<id from map>", "newContent": "<full file text>" }`.
->    For a repo file with no map entry, use `"action": "create"` with the target folder
->    noteId and leave `noteId` empty.
-> 4. For each changed doc, you MAY read the current Slite note (get-note, markdown) to
->    include a short before/after summary in the PR body. Do not attempt any write — it
->    will be denied by the hook.
-> 5. Create a branch `claude/sync-dryrun-<YYYY-MM-DD>`, commit only
->    `.sync/pending-slite-changes.json`, and open a PR titled "Sync dry run". The PR
->    body lists each doc that would change and the direction (git → Slite).
-> 6. Do NOT modify `.sync/baseline/`.
-
-**How to test it:**
-
-1. Create the routine with the prompt above (Slite connector attached, `SYNC_ALLOW_WRITES` unset).
-2. Edit one doc, e.g. add a line to `planets/mars.md`, and commit to `main`.
-3. **Run now** → open the resulting PR. `pending-slite-changes.json` should contain a
-   single `update` entry for `planets/mars.md`, and the Slite note is unchanged. ✅
-4. (Optional) Confirm the guard fired: the run transcript will show any attempted Slite
-   write denied with the `slite-readonly-guard` reason. With a correct prompt there
-   should be none.
-5. When that's trustworthy, move to **Routine B** below to actually apply, and turn on
-   the reverse direction + conflict handling.
-
 ---
 
-## 3-way diff rules (per doc) — full design (v2)
+## 3-way diff rules (per doc) — full design
 
 Each side is compared against **its own** baseline. This is the key to avoiding false
 positives: repo markdown and Slite's markdown export never match byte-for-byte (table
@@ -159,6 +113,8 @@ padding, escaping, spacing), so a single shared baseline would flag every doc as
 > 5. Handle new docs: a repo file not in the map → pending `"action": "create"` entry
 >    (target folder noteId from the map, leave noteId empty). A new Slite note under a
 >    folder but not in the map → create the repo file from its md and note it.
+>
+> 6. If there are no changes to either the repo or slite (i.e. everything matches the baseline), DO NOT create a new PR.
 >
 > Then create a branch `claude/sync-<YYYY-MM-DD>`, commit the repo-side edits (including
 > any Slite→repo overwrites) plus the updated `.sync/pending-slite-changes.json`, and
