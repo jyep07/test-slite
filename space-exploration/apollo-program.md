@@ -1,7 +1,9 @@
 # The Apollo Program
 
 The Apollo program was NASA's effort to land humans on the Moon and bring them
-safely back to Earth, carried out between 1961 and 1972.
+safely back to Earth, between 1961 and 1972.
+
+Apollo is protector of children
 
 ## Overview
 
