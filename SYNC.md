@@ -23,6 +23,27 @@ can write to Slite without asking. So the human gate has to be structural. We us
 - **Routine B (`sync-apply`)** runs *after the PR merges*, applies the approved Slite
   edits, and rewrites the baseline.
 
+### How "Routine A never writes" is enforced (not just instructed)
+
+The connector **is** attached so Routine A can *read* Slite, but writes are blocked at
+the harness level by a committed `PreToolUse` hook — it does not rely on the prompt:
+
+```
+.claude/settings.json                  registers the hook on mcp__Slite__*
+.claude/hooks/slite-readonly-guard.sh  default-deny: allow Slite read tools, deny the rest
+```
+
+The hook allows a known list of Slite **read** tools (`get-note`, `get-note-children`,
+`search-notes`, `list-*`, `ask-slite`, …) and **denies everything else** under
+`mcp__Slite__*` — so create/update/append/modify/remove/move/archive (and any *future*
+Slite write tool) are blocked before they run. The block is lifted only when the
+environment sets `SYNC_ALLOW_WRITES=1`, which **Routine B** does and **Routine A** does not.
+
+| Routine | Env | Slite reads | Slite writes |
+|---------|-----|-------------|--------------|
+| A — plan / dry run | (none) | ✅ allowed | ⛔ blocked by hook |
+| B — apply (after merge) | `SYNC_ALLOW_WRITES=1` | ✅ allowed | ✅ allowed |
+
 ## Repo layout
 
 ```
@@ -30,22 +51,28 @@ can write to Slite without asking. So the human gate has to be structural. We us
   baseline/                    last-synced snapshot of every doc (mirrors the doc tree)
   slite-map.json               repo path  ↔  Slite noteId mapping
   pending-slite-changes.json   written by Routine A (committed into the PR); reset to {} by Routine B
+.claude/
+  settings.json                registers the PreToolUse read-only guard on mcp__Slite__*
+  hooks/slite-readonly-guard.sh  blocks Slite writes unless SYNC_ALLOW_WRITES=1
 ```
 
 ## ⭐ Tester v1 — one-way git → Slite (dry run)
 
-Start here. This proves the plumbing with **zero risk**: it only reads, never writes
-to Slite. It detects which repo docs changed since the baseline and writes a plan;
-you review the plan in a PR. Once it looks right, graduate to the full design below.
+Start here. This proves the plumbing with **zero write risk**: it *reads* Slite to show
+before/after, but the `PreToolUse` guard makes Slite writes impossible (Routine A's
+environment does not set `SYNC_ALLOW_WRITES`). It detects which repo docs changed since
+the baseline and writes a plan; you review the plan in a PR. Graduate to the full design
+below once it looks right.
 
 **Routine:** one routine, trigger = manual **Run now**.
-**Repository:** `jyep07/test-slite`  **Connectors:** Slite (read-only use)  **Branch pushes:** `claude/` prefix.
+**Repository:** `jyep07/test-slite`  **Connectors:** Slite (reads only; writes hard-blocked by the hook)  **Branch pushes:** `claude/` prefix.
+**Environment:** do **not** set `SYNC_ALLOW_WRITES` (leaving it unset keeps the run read-only).
 
 **Prompt (paste verbatim):**
 
-> You are dry-running a one-way sync from this repo's docs to Slite. Do NOT call any
-> Slite write tool (no create-note, update-note, append-blocks, etc.) — this run only
-> proposes changes.
+> You are dry-running a one-way sync from this repo's docs to Slite. This run is
+> read-only on Slite: a PreToolUse hook will block any Slite write tool, so only
+> propose changes — never apply them.
 >
 > 1. Read `.sync/slite-map.json` and `.sync/baseline/`.
 > 2. For each path in the map's `docs`, compare the current repo file against its
@@ -55,8 +82,9 @@ you review the plan in a PR. Once it looks right, graduate to the full design be
 >    `{ "action": "update", "path": "<path>", "noteId": "<id from map>", "newContent": "<full file text>" }`.
 >    For a repo file with no map entry, use `"action": "create"` with the target folder
 >    noteId and leave `noteId` empty.
-> 4. Optionally fetch each changed note (get-note, markdown) and include a short
->    before/after summary in the PR body — but still write nothing to Slite.
+> 4. For each changed doc, you MAY read the current Slite note (get-note, markdown) to
+>    include a short before/after summary in the PR body. Do not attempt any write — it
+>    will be denied by the hook.
 > 5. Create a branch `claude/sync-dryrun-<YYYY-MM-DD>`, commit only
 >    `.sync/pending-slite-changes.json`, and open a PR titled "Sync dry run". The PR
 >    body lists each doc that would change and the direction (git → Slite).
@@ -64,11 +92,14 @@ you review the plan in a PR. Once it looks right, graduate to the full design be
 
 **How to test it:**
 
-1. Create the routine with the prompt above.
+1. Create the routine with the prompt above (Slite connector attached, `SYNC_ALLOW_WRITES` unset).
 2. Edit one doc, e.g. add a line to `planets/mars.md`, and commit to `main`.
 3. **Run now** → open the resulting PR. `pending-slite-changes.json` should contain a
-   single `update` entry for `planets/mars.md`. No Slite note changed. ✅
-4. When that's trustworthy, move to **Routine B** below to actually apply, and turn on
+   single `update` entry for `planets/mars.md`, and the Slite note is unchanged. ✅
+4. (Optional) Confirm the guard fired: the run transcript will show any attempted Slite
+   write denied with the `slite-readonly-guard` reason. With a correct prompt there
+   should be none.
+5. When that's trustworthy, move to **Routine B** below to actually apply, and turn on
    the reverse direction + conflict handling.
 
 ---
@@ -118,6 +149,8 @@ Compare **repo vs baseline** and **Slite vs baseline**:
 **Trigger:** GitHub event → `pull_request.closed`, filters: **is merged = true**,
 **head branch contains `sync`**. (Requires the Claude GitHub App installed on the repo.)
 **Repository:** `jyep07/test-slite`  **Connectors:** Slite only
+**Environment:** set **`SYNC_ALLOW_WRITES=1`** so the read-only guard permits Slite
+writes for this routine (use a dedicated environment; do not add this var to Routine A's).
 **Permissions:** enable **Allow unrestricted branch pushes** (so it can commit the
 updated baseline to the merged branch's target).
 
