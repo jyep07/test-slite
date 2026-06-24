@@ -1,0 +1,86 @@
+{
+  "lastSyncedGitSha": "1d42bd82aa88d9d1a4b4248a884ae6adf167eba5",
+  "lastSyncedAt": "2026-06-24T20:31:53Z",
+  "docs": {
+    "moons/europa.md": {
+      "noteId": "L4gCAfhOBqbyO1",
+      "repoHash": "cc97b94f068edd962525b68fd23f5171065a3892cc0b7e9f5cff6a10ceac07f4",
+      "sliteHash": "43503770ad950b19d62f51e087fa76708a8d51c57b69e2b39bfb49f24544f1a6"
+    },
+    "moons/the-moon.md": {
+      "noteId": "A53Qrw6OnyVuh4",
+      "repoHash": "4597b2d1e8a7a853932598800ad25975c08fe6cac8550c486ed0be2d1050fc62",
+      "sliteHash": "4597b2d1e8a7a853932598800ad25975c08fe6cac8550c486ed0be2d1050fc62"
+    },
+    "moons/titan.md": {
+      "noteId": "tBRYmBvCQMkoXY",
+      "repoHash": "560e7ecbf3d3b1cf486ceed768b4c59dfc87d32fdb8dcb0745fc148d3fe94a3f",
+      "sliteHash": "c13731a2c032bca48a686e80e4380dbc145816f516a609ff1bdaa055696f8ab1"
+    },
+    "planets/earth.md": {
+      "noteId": "GHF_EZuuNsbsOx",
+      "repoHash": "3f85f4a8b977794f71184fef492dc1860f590151b87c604ed3b17e0030dcb91a",
+      "sliteHash": "6d5010bd2bea0661b54357d99f815759591b1e0a80c2555298db19a647c8189a"
+    },
+    "planets/jupiter.md": {
+      "noteId": "s5_Qtl8-ZyrnMo",
+      "repoHash": "c192ca7bd69d38e1adc0d9a5c852662f08a22c340ae57d0a5f283599092cfe4e",
+      "sliteHash": "fe8467ee83eb37465e48ea2ad10f07bd8766f6b92d7983e5653b60f0a91a5bd7"
+    },
+    "planets/mars.md": {
+      "noteId": "e_pXodM6RoMqi8",
+      "repoHash": "e84482a767d3a06c58928d802c20a17babf5841c267aabda61715b6839b54ea5",
+      "sliteHash": "72dd55294188c56ebb0d1dd790b09d085e74fe37fe6602d9e209c06d0debfc80"
+    },
+    "planets/mercury.md": {
+      "noteId": "OffA454HBYFUH2",
+      "repoHash": "2eafa6382f942c47f0544fcb2e1fe52255fa187ee0c22eba30cd28a98e3a3b78",
+      "sliteHash": "d63c969f2ac5d12a582e80de30e855e5926f410cd4c326d966b2d4579a31a9de"
+    },
+    "planets/saturn.md": {
+      "noteId": "PI1LZRVkJ2oRfV",
+      "repoHash": "9dd426e41360e04b4d739a508e132049f7ed4aac4874c34d732b86e12491d8dd",
+      "sliteHash": "5365f09ff65715b6db722c82927b518d7a609ff08f3c4d268189db67556be352"
+    },
+    "planets/venus.md": {
+      "noteId": "_6v_97TDGnTA88",
+      "repoHash": "4bb4b54872146216a121ac961117c6b83434e39315e7956ea632b23f3e1c7ff3",
+      "sliteHash": "be908f429c55d0f70bccbcb33ce038dfad3ce8207c6a53a722f982c4ac2f32cb"
+    },
+    "space-exploration/apollo-program.md": {
+      "noteId": "ZtDxPbalt2dHRj",
+      "repoHash": "29f22881569bc286182d23ded06fd18905baa4a1d7d575766fb8ea85be1225bd",
+      "sliteHash": "1565344641c96f0e23756960d46ee9ad3a37e37948252a5f67715e27aa497421"
+    },
+    "space-exploration/james-webb-telescope.md": {
+      "noteId": "0sw78vhuvqZ0UU",
+      "repoHash": "7093688e873a383110822da35fb564280f731156528920184f1c942e03ac28d8",
+      "sliteHash": "3fbdd51450e379304aa77c3a79c5e1425f51ccdda37e7744a4958c555a069e1a"
+    },
+    "space-exploration/the-iss.md": {
+      "noteId": "JuInoGYE8v5jTV",
+      "repoHash": "c37701f842cd0c8fe943e0ed7590d957b77ca63b9f3e417b4e3bb3e4dd73f83b",
+      "sliteHash": "e49a940e5fc51b4a11b0f449c49cc320ac2b77b95c603ee174a106ba91e571d1"
+    },
+    "space-exploration/voyager-program.md": {
+      "noteId": "1TT9BnrIbEwUbO",
+      "repoHash": "6ee8bfc16d438dbdac142870e8eaf609bbf2f920212432b729be3f7660497ef4",
+      "sliteHash": "0bc54ebf772319a1e00935d62892ad9680ef45b7a54ee26ee631c1ca53ffd09a"
+    },
+    "stars-and-galaxies/black-holes.md": {
+      "noteId": "tKrAi8saqc2oMG",
+      "repoHash": "7fefc4c0356106e1406aaa28f5dd3b6f15f81ddb93eda539873f608ae4ba4e2a",
+      "sliteHash": "b121f3eab05de0622b2f0b4d1e9acccdcab39b15582371ead6f88a423a1bff48"
+    },
+    "stars-and-galaxies/milky-way.md": {
+      "noteId": "VRuFvQ2bSF6X2C",
+      "repoHash": "e8967401f3a8d519de8313e2ecca856bc22f3a2e15215d161d089ed2b229dfcd",
+      "sliteHash": "e8967401f3a8d519de8313e2ecca856bc22f3a2e15215d161d089ed2b229dfcd"
+    },
+    "stars-and-galaxies/the-sun.md": {
+      "noteId": "Z9XqExuTkn7Ekq",
+      "repoHash": "1c9cc7ccefb4457dd210614be87f9bc822020c109312bf35bce338dfe7af7420",
+      "sliteHash": "83af8aa21fba7dfc2930a8ed67e006252db89f01849c16abcee74edaf7a3cad8"
+    }
+  }
+}
