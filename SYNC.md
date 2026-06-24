@@ -32,7 +32,48 @@ can write to Slite without asking. So the human gate has to be structural. We us
   pending-slite-changes.json   written by Routine A (committed into the PR); reset to {} by Routine B
 ```
 
-## 3-way diff rules (per doc)
+## ⭐ Tester v1 — one-way git → Slite (dry run)
+
+Start here. This proves the plumbing with **zero risk**: it only reads, never writes
+to Slite. It detects which repo docs changed since the baseline and writes a plan;
+you review the plan in a PR. Once it looks right, graduate to the full design below.
+
+**Routine:** one routine, trigger = manual **Run now**.
+**Repository:** `jyep07/test-slite`  **Connectors:** Slite (read-only use)  **Branch pushes:** `claude/` prefix.
+
+**Prompt (paste verbatim):**
+
+> You are dry-running a one-way sync from this repo's docs to Slite. Do NOT call any
+> Slite write tool (no create-note, update-note, append-blocks, etc.) — this run only
+> proposes changes.
+>
+> 1. Read `.sync/slite-map.json` and `.sync/baseline/`.
+> 2. For each path in the map's `docs`, compare the current repo file against its
+>    `.sync/baseline/<path>` copy.
+> 3. For every file that differs (or is missing from the baseline), add an entry to
+>    `.sync/pending-slite-changes.json`:
+>    `{ "action": "update", "path": "<path>", "noteId": "<id from map>", "newContent": "<full file text>" }`.
+>    For a repo file with no map entry, use `"action": "create"` with the target folder
+>    noteId and leave `noteId` empty.
+> 4. Optionally fetch each changed note (get-note, markdown) and include a short
+>    before/after summary in the PR body — but still write nothing to Slite.
+> 5. Create a branch `claude/sync-dryrun-<YYYY-MM-DD>`, commit only
+>    `.sync/pending-slite-changes.json`, and open a PR titled "Sync dry run". The PR
+>    body lists each doc that would change and the direction (git → Slite).
+> 6. Do NOT modify `.sync/baseline/`.
+
+**How to test it:**
+
+1. Create the routine with the prompt above.
+2. Edit one doc, e.g. add a line to `planets/mars.md`, and commit to `main`.
+3. **Run now** → open the resulting PR. `pending-slite-changes.json` should contain a
+   single `update` entry for `planets/mars.md`. No Slite note changed. ✅
+4. When that's trustworthy, move to **Routine B** below to actually apply, and turn on
+   the reverse direction + conflict handling.
+
+---
+
+## 3-way diff rules (per doc) — full design (v2)
 
 Compare **repo vs baseline** and **Slite vs baseline**:
 
