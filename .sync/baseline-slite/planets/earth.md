@@ -1,6 +1,8 @@
 # Earth
 
-Earth is the third planet from the Sun and the only known astronomical object to harbor life.
+Earth is the third planet from the Sun and the only known astronomical object
+
+to harbor life!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ## Quick Facts
 
@@ -17,7 +19,13 @@ Earth is the third planet from the Sun and the only known astronomical object to
 
 ## Overview
 
-Earth is a terrestrial planet with a surface that is about 71% water. Its atmosphere is composed primarily of nitrogen (78%) and oxygen (21%), protecting life from harmful solar radiation and maintaining a stable climate through the greenhouse effect.
+Earth is a terrestrial planet with a surface that is about 71% water. Its
+
+atmosphere is composed primarily of nitrogen (78%) and oxygen (21%), protecting
+
+life from harmful solar radiation and maintaining a stable climate through the
+
+greenhouse effect.
 
 ## Notable Features
 
@@ -27,4 +35,6 @@ Earth is a terrestrial planet with a surface that is about 71% water. Its atmosp
 
 ## The Goldilocks Zone
 
-Earth orbits within the Sun's habitable zone, where temperatures allow liquid water to exist on the surface — a key ingredient for life as we know it.
+Earth orbits within the Sun's habitable zone, where temperatures allow liquid
+
+water to exist on the surface — a key ingredient for life as we know it.
