@@ -127,7 +127,12 @@ padding, escaping, spacing), so a single shared baseline would flag every doc as
 >    no conflicts — then STOP: do not create a branch, do not commit, and do NOT open a
 >    PR. Make no changes at all and end the run. Only proceed to step 7 when there is at
 >    least one entry in `to_slite` or `from_slite`, or at least one conflict to report.
-> 7. Otherwise, create a branch `claude/sync-<YYYY-MM-DD>`, commit the repo-side edits
+> 7. **Stale-baseline guard.** Before opening a PR, check for open PRs in the repo. If any
+>    open PR has a head branch starting with `claude/baseline-`, STOP and do nothing — a
+>    prior cycle's baseline update has not been merged yet, so the baselines are stale and
+>    any diff you computed may be a duplicate. End the run; it will pick up cleanly once
+>    that baseline PR is merged.
+> 8. Otherwise, create a branch `claude/sync-<YYYY-MM-DD>`, commit the repo-side edits
 >    (including any Slite→repo overwrites) plus the updated
 >    `.sync/pending-slite-changes.json`, and open a PR. The PR body must list, per doc,
 >    the direction it synced (git→Slite, Slite→git, or conflict). Do NOT modify either
@@ -140,8 +145,9 @@ padding, escaping, spacing), so a single shared baseline would flag every doc as
 **Repository:** `jyep07/test-slite`  **Connectors:** Slite only
 **Environment:** set **`SYNC_ALLOW_WRITES=1`** so the read-only guard permits Slite
 writes for this routine (use a dedicated environment; do not add this var to Routine A's).
-**Permissions:** enable **Allow unrestricted branch pushes** (so it can commit the
-updated baseline to the merged branch's target).
+**Permissions:** default is fine — **no "Allow unrestricted branch pushes" needed**,
+because the baseline update goes onto a `claude/`-prefixed branch via a PR (not a direct
+push to `main`).
 
 **Prompt:**
 
@@ -157,8 +163,12 @@ updated baseline to the merged branch's target).
 >    *both* sides to the now-converged content, each from its own source:
 >    - `.sync/baseline/<path>` ← the current repo file.
 >    - `.sync/baseline-slite/<path>` ← re-fetch that note (get-note, markdown) and save it.
-> 3. Reset `.sync/pending-slite-changes.json` to `{ "to_slite": [], "from_slite": [] }`,
->    then commit the updated baselines and map to `main`.
+> 3. Reset `.sync/pending-slite-changes.json` to `{ "to_slite": [], "from_slite": [] }`.
+> 4. Commit the updated baselines, the map, and the reset change-set to a **new branch
+>    named `claude/baseline-<YYYY-MM-DD-HHMM>`** (it must NOT contain "sync", so merging it
+>    does not re-trigger this routine), and open a PR titled "Baseline update for
+>    <date>". Do not commit to `main` directly. A human merges this PR to finalize the
+>    cycle; once merged, the baselines are live and Routine A resumes normally.
 >
 > Leaving untouched docs' baselines alone is deliberate: if someone edited an unrelated
 > doc between Routine A and this merge, a blanket rebuild would absorb that edit into the
