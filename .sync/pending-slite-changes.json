@@ -1,1 +1,8 @@
-{ "to_slite": [], "from_slite": [] }
+{
+  "scanGitSha": "bb6b93b90071a1d965c7b572837a08e922145b30",
+  "to_slite": [],
+  "from_slite": [
+    { "path": "moons/europa.md", "noteId": "L4gCAfhOBqbyO1" },
+    { "path": "planets/earth.md", "noteId": "GHF_EZuuNsbsOx" }
+  ]
+}
