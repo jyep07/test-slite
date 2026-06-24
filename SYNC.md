@@ -1,8 +1,8 @@
 # GitHub ↔ Slite sync routine
 
 A tester setup for keeping this repo's docs and the Slite **SPACE TEST** folder in
-sync, using a 3-way diff against a committed baseline. Human approval happens at a
-single point: **merging the PR**.
+sync, using a 3-way diff against committed baselines (one per side). Human approval
+happens at a single point: **merging the PR**.
 
 ```
  Git repo ─┐                          ┌─ open PR (git side)   → human merges
@@ -17,9 +17,9 @@ Routines run **autonomously — there is no approval prompt during a run**, and 
 can write to Slite without asking. So the human gate has to be structural. We use the
 **PR merge** as that gate:
 
-- **Routine A (`sync-plan`)** computes the diff and proposes changes, but does **not**
-  touch live Slite. Git-side changes land as real file edits in a PR; Slite-side
-  changes are written to `.sync/pending-slite-changes.json` in the same PR.
+- **Routine A (`sync-plan`)** computes the two-way diff and proposes changes, but does
+  **not** touch live Slite. **Slite→repo** edits land as real file changes in the PR;
+  **repo→Slite** edits are queued in `.sync/pending-slite-changes.json` in the same PR.
 - **Routine B (`sync-apply`)** runs *after the PR merges*, applies the approved Slite
   edits, and rewrites the baseline.
 
@@ -48,7 +48,8 @@ environment sets `SYNC_ALLOW_WRITES=1`, which **Routine B** does and **Routine A
 
 ```
 .sync/
-  baseline/                    last-synced snapshot of every doc (mirrors the doc tree)
+  baseline/                    last-synced snapshot of the REPO side (repo-authored markdown)
+  baseline-slite/              last-synced snapshot of the SLITE side (Slite's md export)
   slite-map.json               repo path  ↔  Slite noteId mapping
   pending-slite-changes.json   written by Routine A (committed into the PR); reset to {} by Routine B
 .claude/
@@ -106,7 +107,13 @@ below once it looks right.
 
 ## 3-way diff rules (per doc) — full design (v2)
 
-Compare **repo vs baseline** and **Slite vs baseline**:
+Each side is compared against **its own** baseline. This is the key to avoiding false
+positives: repo markdown and Slite's markdown export never match byte-for-byte (table
+padding, escaping, spacing), so a single shared baseline would flag every doc as
+"changed". Two baselines fix that:
+
+- **repo changed** = current repo file `≠` `.sync/baseline/<path>`
+- **slite changed** = current Slite md export `≠` `.sync/baseline-slite/<path>`
 
 | repo changed | slite changed | action |
 |:---:|:---:|---|
@@ -117,6 +124,10 @@ Compare **repo vs baseline** and **Slite vs baseline**:
 | new file | — | **create Slite note** under the right folder; add to slite-map.json |
 | — | new note | **create repo file**; add to slite-map.json |
 
+> Compare with a tolerant match (trim trailing whitespace per line + trailing blank
+> lines) so cosmetic export differences don't read as edits. When Slite is the source,
+> write the fetched Slite md export verbatim into the repo file.
+
 ---
 
 ## Routine A — `sync-plan`
@@ -126,23 +137,34 @@ Compare **repo vs baseline** and **Slite vs baseline**:
 
 **Prompt:**
 
-> You are syncing this repo's docs with the Slite "SPACE TEST" folder. Read
-> `.sync/slite-map.json` for the path↔noteId mapping and `.sync/baseline/` for the
-> last-synced snapshot.
+> You are doing a two-way sync between this repo's docs and the Slite "SPACE TEST"
+> folder. This run is read-only on Slite: a PreToolUse hook blocks every Slite write
+> tool, so propose changes only — never apply them to Slite.
 >
-> For every doc in the map, fetch the current Slite note (get-note, markdown format)
-> and read the current repo file. Do a 3-way comparison against the baseline copy:
-> - repo changed only → record a Slite edit in `.sync/pending-slite-changes.json`
->   (noteId, path, new content). Do NOT call any Slite write tool.
-> - Slite changed only → edit the repo file to match.
-> - both changed → list it under "conflicts"; change nothing.
-> - new repo file not in the map → add a pending Slite "create" entry.
-> - new Slite note not in the map → create the repo file and note it.
+> Read `.sync/slite-map.json` (path↔noteId). For every doc in the map's `docs`:
+> 1. Read the current repo file, `.sync/baseline/<path>` (repo baseline), and
+>    `.sync/baseline-slite/<path>` (Slite baseline).
+> 2. Fetch the current Slite note with get-note in **markdown** format.
+> 3. Decide what changed (use a tolerant compare — ignore trailing whitespace and
+>    trailing blank lines):
+>    - **repo changed** = repo file ≠ `.sync/baseline/<path>`
+>    - **slite changed** = fetched Slite md ≠ `.sync/baseline-slite/<path>`
+> 4. Apply the rules:
+>    - repo changed only → add an entry to `.sync/pending-slite-changes.json`:
+>      `{ "action": "update", "path": "<path>", "noteId": "<id>", "newContent": "<full repo file text>" }`.
+>    - Slite changed only → **overwrite the repo file** with the fetched Slite md
+>      (this lands in the PR as a normal git edit).
+>    - both changed → do nothing to either side; record it under "conflicts".
+>    - neither → skip.
+> 5. Handle new docs: a repo file not in the map → pending `"action": "create"` entry
+>    (target folder noteId from the map, leave noteId empty). A new Slite note under a
+>    folder but not in the map → create the repo file from its md and note it.
 >
-> Then: create a branch `claude/sync-<YYYY-MM-DD>`, commit the repo-side edits plus
-> the updated `.sync/pending-slite-changes.json`, and open a PR. The PR body must
-> summarize, per doc, which direction it synced and list any conflicts. Do NOT modify
-> `.sync/baseline/` and do NOT write to Slite — those happen only after merge.
+> Then create a branch `claude/sync-<YYYY-MM-DD>`, commit the repo-side edits (including
+> any Slite→repo overwrites) plus the updated `.sync/pending-slite-changes.json`, and
+> open a PR. The PR body must list, per doc, the direction it synced (git→Slite,
+> Slite→git, or conflict). Do NOT modify either baseline and do NOT write to Slite —
+> those happen only after merge (Routine B).
 
 ## Routine B — `sync-apply`
 
@@ -161,10 +183,15 @@ updated baseline to the merged branch's target).
 > (under the folder noteId from `.sync/slite-map.json`) for creates, adding any new
 > noteIds back into `.sync/slite-map.json`.
 >
-> After all Slite writes succeed, regenerate `.sync/baseline/` so every baseline copy
-> matches the current repo doc, clear `.sync/pending-slite-changes.json` to `{}`, then
-> commit `.sync/baseline/` and the updated map to `main`. This snapshot becomes the
-> baseline for the next run.
+> After all Slite writes succeed, rebuild **both** baselines so the next run starts from
+> a clean slate:
+> - `.sync/baseline/<path>` ← the current repo file for every doc.
+> - `.sync/baseline-slite/<path>` ← re-fetch each note (get-note, markdown) and save it,
+>   so the Slite baseline reflects what now lives in Slite (including the edits you just
+>   applied and any Slite→repo docs).
+>
+> Then clear `.sync/pending-slite-changes.json` to `{}` and commit the two baselines and
+> the updated map to `main`. This snapshot becomes the baseline for the next run.
 
 ---
 
