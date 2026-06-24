@@ -122,13 +122,16 @@ padding, escaping, spacing), so a single shared baseline would flag every doc as
 >    Slite note under a folder but not in the map → create the repo file from its md, add
 >    it to the map, and append it to `from_slite`.
 >
-> 6. If there are no changes to either the repo or slite (i.e. everything matches the baseline), DO NOT create a new PR.
->
-> Then create a branch `claude/sync-<YYYY-MM-DD>`, commit the repo-side edits (including
-> any Slite→repo overwrites) plus the updated `.sync/pending-slite-changes.json`, and
-> open a PR. The PR body must list, per doc, the direction it synced (git→Slite,
-> Slite→git, or conflict). Do NOT modify either baseline and do NOT write to Slite —
-> those happen only after merge (Routine B).
+> 6. **No-op check — do this before creating anything.** If after scanning every doc
+>    there is nothing to sync — `to_slite` is empty, `from_slite` is empty, and there are
+>    no conflicts — then STOP: do not create a branch, do not commit, and do NOT open a
+>    PR. Make no changes at all and end the run. Only proceed to step 7 when there is at
+>    least one entry in `to_slite` or `from_slite`, or at least one conflict to report.
+> 7. Otherwise, create a branch `claude/sync-<YYYY-MM-DD>`, commit the repo-side edits
+>    (including any Slite→repo overwrites) plus the updated
+>    `.sync/pending-slite-changes.json`, and open a PR. The PR body must list, per doc,
+>    the direction it synced (git→Slite, Slite→git, or conflict). Do NOT modify either
+>    baseline and do NOT write to Slite — those happen only after merge (Routine B).
 
 ## Routine B — `sync-apply`
 
