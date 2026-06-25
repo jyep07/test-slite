@@ -1,1 +1,27 @@
-{ "scanGitSha": "", "to_slite": [], "from_slite": [] }
+{
+  "scanGitSha": "5a838fd0590b775a679d28cdb127e613e9fa8da9",
+  "to_slite": [
+    {
+      "action": "update",
+      "path": "moons/europa.md",
+      "noteId": "L4gCAfhOBqbyO1",
+      "newContent": "# Europa\n\nEuropa is the smallest of Jupiter's 4 Galilean moons and one of the most promising places to search for extraterrestrial life.\n\n## Quick Facts\n\n| Property                      | Value               |\n| ----------------------------- | ------------------- |\n| Parent planet                 | Jupiter             |\n| Diameter                      | 3,122 km            |\n| Average distance from Jupiter | 671,000 km          |\n| Orbital period                | 3.55 days           |\n| Surface temperature           | ~−160 °C to −220 °C |\n\n## Overview\n\nEuropa has a smooth, icy surface crisscrossed by reddish-brown cracks. Beneath\n\nits ice shell lies a global saltwater ocean — estimated to contain twice as much\n\nwater as all of Earth's oceans combined. Tidal heating from Jupiter keeps this\n\nocean liquid.\n\n## Why It Matters\n\nThe combination of liquid water, chemical energy, and the right elements makes\n\nEuropa a key target in astrobiology. If life exists, it may thrive near\n\nhydrothermal vents on the ocean floor, similar to extremophiles on Earth.\n\n## Exploration\n\n- **NASA's Europa Clipper** (launched 2024) will conduct dozens of close flybys to assess the moon's habitability.\n- **ESA's JUICE** mission will also study Europa along with Ganymede and Callisto.\n"
+    },
+    {
+      "action": "update",
+      "path": "planets/mars.md",
+      "noteId": "e_pXodM6RoMqi8",
+      "newContent": "# Mars\n\n#4 planet from the Sun, known as the \"Red Planet\" for the iron\noxide (rust) that covers its surface.\n\n## Quick Facts\n\n| Property | Value |\n|----------|-------|\n| Order from Sun | 4th |\n| Diameter | 6,779 km |\n| Mass | 6.42 × 10²³ kg (0.107 Earth) |\n| Average distance from Sun | 227.9 million km (1.52 AU) |\n| Orbital period | 687 Earth days |\n| Rotation period | 24.6 hours |\n| Moons | 2 (Phobos, Deimos) |\n| Surface temperature | −153 °C to 20 °C |\n\n## Overview\n\nMars is a cold, desert world with a thin carbon-dioxide atmosphere. Evidence of\nancient river valleys, lake beds, and minerals that form in water suggests Mars\nonce had liquid water and a thicker atmosphere, making it a prime target in the\nsearch for past life.\n\n## Notable Features\n\n- **Olympus Mons** — the largest volcano in the Solar System, standing about\n  22 km tall (nearly three times the height of Mount Everest).\n- **Valles Marineris** — a canyon system over 4,000 km long.\n- **Polar ice caps** made of water and frozen carbon dioxide.\n\n## Exploration\n\nMars is the most explored planet beyond Earth, with active rovers including\n**Curiosity** and **Perseverance**, and the **Ingenuity** helicopter — the\nfirst powered flight on another planet.\n"
+    }
+  ],
+  "from_slite": [
+    {
+      "path": "planets/earth.md",
+      "noteId": "GHF_EZuuNsbsOx"
+    },
+    {
+      "path": "stars-and-galaxies/milky-way.md",
+      "noteId": "VRuFvQ2bSF6X2C"
+    }
+  ]
+}
