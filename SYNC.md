@@ -97,22 +97,39 @@ environment sets `SYNC_ALLOW_WRITES=1`, which **Routine B** does and **Routine A
 - **slite changed** = `hash(current Slite md export) != docs[path].sliteHash`
 
 Two hashes per doc (not one shared hash) because repo markdown and Slite's md export
-**never match byte-for-byte** — Slite pads table columns and unwraps paragraphs, the
-repo hard-wraps at ~80 cols and uses compact tables. Comparing each side only to its
-own stored hash means those cosmetic differences never read as edits. (At seed time
-14 of 16 docs already have `repoHash != sliteHash` — that is expected and harmless.)
+still differ even after normalization — Slite rewrites smart quotes to straight,
+inserts a space before some punctuation, and escapes `*` as `\*`. Comparing each side
+only to its own stored hash means those residual export artifacts never read as edits.
+(At seed time ~5 of 16 docs have `repoHash != sliteHash` for exactly these reasons —
+expected and harmless.)
 
-**Hashing is normalized and identical on every side.** `sync-detect.sh` strips
-trailing whitespace per line and trailing blank lines, then `sha256`. Always hash via
+**Hashing is normalized and identical on every side** (the single definition of "what
+counts as a change" lives in `normhash` inside `sync-detect.sh`). It is
+**formatting-insensitive but markup-preserving**:
+
+- **Ignored (formatting, never a change):** leading/trailing whitespace; runs of
+  spaces/tabs collapsed to one (table-column padding); blank lines; hard-wrapping
+  (consecutive text / list-continuation lines are reflowed into one logical line);
+  table-cell padding and the dash-count in separator rows.
+- **Preserved (a real change):** the words/characters themselves, and markdown markup —
+  heading level (`#`/`##`), emphasis (`**`/`_`), list marker (`-`/`*`/`+`), blockquote
+  (`>`), table pipes, links, code. These are characters, not whitespace.
+
+So a pure reformat (re-wrap, re-pad a table) hashes the **same** and is not synced; a
+word edit or a markup change hashes **differently** and is. Always hash via
 `bash .sync/sync-detect.sh hash <file>` — repo files directly, Slite exports by writing
 the fetched md to a temp file first. Never hand-roll the hash, or every doc reads as changed.
+Run `bash .sync/sync-detect.sh selftest` to see the rules asserted, or
+`bash .sync/sync-detect.sh normalize <file>` to view a doc's canonical form.
 
 ## `sync-detect.sh`
 
 ```
-bash .sync/sync-detect.sh            # (= detect) emit the repo-side change-set as JSON
-bash .sync/sync-detect.sh detect     # same
-bash .sync/sync-detect.sh hash FILE  # print the normalized content hash of one file
+bash .sync/sync-detect.sh                 # (= detect) emit the repo-side change-set as JSON
+bash .sync/sync-detect.sh detect          # same
+bash .sync/sync-detect.sh hash FILE       # print the normalized content hash of one file
+bash .sync/sync-detect.sh normalize FILE  # print the canonical (normalized) text — for review
+bash .sync/sync-detect.sh selftest        # assert: formatting ignored, content/markup preserved
 ```
 
 `detect` reads `lastSyncedGitSha` from `state.json`, runs
