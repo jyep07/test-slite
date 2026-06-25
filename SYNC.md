@@ -1,75 +1,84 @@
-# GitHub ↔ Slite sync routine (v2 — change detection)
+# GitHub ↔ Slite sync routine (v2 — change detection, comment-driven)
 
 A tester setup for keeping this repo's docs and the Slite **SPACE TEST** folder in
-sync. **v2 scales with the number of changes, not the size of the repo.** Each side
-detects what changed since the last sync instead of re-reading everything; human
-approval still happens at a single point: **merging the sync PR**.
+sync. **It scales with the number of changes, not the size of the repo.** Human
+approval happens at a single point: **merging the sync PR**.
+
+Two directions, two different signals:
+
+- **repo → Slite** — detected deterministically with `git diff` (no Slite calls).
+- **Slite → repo** — driven by **comments**, not body edits. Reviewers leave a
+  comment on a note describing the change they want; Routine A turns each
+  **unresolved** comment thread into a proposed edit to *both* the repo file and
+  the Slite note; Routine B applies both and **resolves the comment**.
 
 ```
- Git repo ──┐  sync-detect.sh: git diff <lastSyncedGitSha>..HEAD + hash   ┌─ open sync PR  → human merges
-            ├─ Routine A (change detect, read-only on Slite) ─────────────┤
- Slite ─────┘  get-note per mapped note → hash vs sliteHash             └─ Routine B applies + advances state.json (self-merged PR)
+ Git repo ──┐  sync-detect.sh: git diff <lastSyncedGitSha>..HEAD + hash      ┌─ open sync PR → human merges
+            ├─ Routine A (read-only on Slite) ───────────────────────────────┤
+ Slite ─────┘  list-comment-threads per note → unresolved threads → suggest  └─ Routine B applies git+Slite, resolves comments, advances state
 ```
 
-## What changed from v1 (and why)
+## Why comment-driven (and why it replaced body-hash detection)
 
-v1's Routine A did a **full O(N) scan every run**: it read 48 files (16 docs ×
-`repo` + `baseline/` + `baseline-slite/`) and fetched all 16 Slite notes, then
-diffed all of it in one context. At 16 docs it was already slow (10+ min) and
-sometimes failed; it did not scale.
+Earlier the Slite→repo side hash-swept **every** note body each run, because
+Slite's edit timestamps (`updatedAt`, `lastEditedAt`, `list-recently-edited-notes`)
+**do not reliably bump on a content edit** — so they couldn't be used to find
+which notes changed, forcing a full export+hash of all N notes.
 
-v2 removes the heavy parts of the scan:
+Comments fix this at the source:
 
-| Per run | v1 | v2 |
-|---|---|---|
-| Baseline file reads | 32 | **0** — hashes live in `state.json` |
-| Slite note fetches | 16 (all) | 16 (all) — fetch + hash, but **store only a hash, no big-context diff** |
-| Repo file reads | 16 (all) | **only files in `git diff <sha>..HEAD`** |
-| Single-context diff of everything | yes (the bottleneck) | **no** — per-doc hash compare |
+- **Reliable signal.** Each comment thread carries a `resolved` flag. *Unresolved
+  = a pending request; resolved = done.* No hashing of bodies needed to decide
+  what's outstanding.
+- **Cheaper discovery.** `list-comment-threads` returns thread metadata (small),
+  not the full note body. Discovery is **O(N) light list calls**; only the **k**
+  notes that actually have unresolved comments get a full read. (There is no
+  space-wide "recent comments" feed in the Slite MCP, so the N light calls are the
+  floor — but they are far cheaper than exporting+hashing every body.)
+- **Explicit intent.** A comment states the change ("NASA lists 6,792 km — please
+  update"); no need to diff a body edit to guess what was meant. Anchored comments
+  even pin the exact target text.
+- **Clean bodies.** The note body stays a faithful mirror of the repo — no
+  formatting churn, no accidental two-sided drift.
 
-The two content baseline trees (`.sync/baseline/`, `.sync/baseline-slite/`) are
-**gone**, replaced by a single `.sync/state.json` holding one hash per side per doc.
+> **Convention:** reviewers **comment** to request a change; they do **not** edit
+> note bodies directly. Routine A applies the change to both sides, so the body
+> ends up matching the repo automatically once the cycle completes. (Routine A
+> still guards against a stray direct body edit — see the conflict rules.)
 
-> **Why the Slite side still fetches every note.** The original v2 plan filtered
-> Slite reads by `updatedAt > lastSyncedAt`. Testing showed Slite's edit timestamps
-> (`updatedAt`, `lastEditedAt`, and `list-recently-edited-notes`) **do not reliably
-> bump on a content edit** — a real edit to a note left all three frozen, so the
-> filter silently skipped it. The hash is the only trustworthy signal, so Routine A
-> **fetches every mapped note and hash-compares** it to `sliteHash`. The repo side is
-> still O(changes) via `git diff`; the Slite side is O(N) *fetches* but still O(1)
-> *storage* (one hash per note) and avoids v1's real cost — loading every doc into one
-> context to diff. `lastSyncedAt` is kept for audit/logging but is no longer a gate.
+## Why two routines
 
-## Why two routines (unchanged from v1)
-
-Routines run **autonomously — there is no approval prompt during a run**, and Claude
-can write to Slite without asking. So the human gate has to be structural. We use the
-**sync PR merge** as that gate:
+Routines run **autonomously — no approval prompt during a run**, and Claude can
+write to Slite without asking. So the human gate is structural: the **sync PR merge**.
 
 - **Routine A (`sync-plan`)** detects changes and proposes them, but does **not**
-  touch live Slite. **Slite→repo** edits land as real file changes in the PR;
-  **repo→Slite** edits are queued in `.sync/pending-slite-changes.json` in the same PR.
-- **Routine B (`sync-apply`)** runs *after the sync PR merges*, applies the approved
-  Slite edits, advances `state.json`, and **self-merges** its own bookkeeping PR.
+  touch live Slite. **Slite→repo** edits (from comments) land as real file changes
+  in the PR; the Slite-side write + comment-resolution are queued in
+  `.sync/pending-slite-changes.json` in the same PR.
+- **Routine B (`sync-apply`)** runs *after the sync PR merges*, applies the queued
+  Slite edits, **resolves the comment threads**, advances `state.json`, and
+  **self-merges** its own bookkeeping PR.
 
 ### How "Routine A never writes" is enforced (not just instructed)
 
-The connector **is** attached so Routine A can *read* Slite, but writes are blocked at
-the harness level by a committed `PreToolUse` hook — it does not rely on the prompt:
+The connector **is** attached so Routine A can *read* Slite (including comments),
+but writes are blocked at the harness level by a committed `PreToolUse` hook:
 
 ```
 .claude/settings.json                  registers the hook on mcp__Slite__*
 .claude/hooks/slite-readonly-guard.sh  default-deny: allow Slite read tools, deny the rest
 ```
 
-The hook allows a known list of Slite **read** tools (`get-note`, `get-note-children`,
-`search-notes`, `list-*`, `ask-slite`, …) and **denies everything else** under
-`mcp__Slite__*` — so create/update/append/modify/remove/move/archive (and any *future*
-Slite write tool) are blocked before they run. The block is lifted only when the
-environment sets `SYNC_ALLOW_WRITES=1`, which **Routine B** does and **Routine A** does not.
+The hook allows Slite **read** tools — including **`list-comment-threads`** and
+**`get-comment-thread-on-note`** — and **denies everything else** under
+`mcp__Slite__*`, so `update-note`, `create-note`, `archive-note`, and the comment
+*write* tools (`resolve-comment-thread`, `reply-to-comment-thread`,
+`create-comment-thread`, …) are blocked before they run. The block is lifted only
+when the environment sets `SYNC_ALLOW_WRITES=1`, which **Routine B** does and
+**Routine A** does not.
 
-| Routine | Env | Slite reads | Slite writes |
-|---------|-----|-------------|--------------|
+| Routine | Env | Slite reads (incl. comments) | Slite writes (body + comment resolve) |
+|---------|-----|------------------------------|----------------------------------------|
 | A — plan / dry run | (none) | ✅ allowed | ⛔ blocked by hook |
 | B — apply (after merge) | `SYNC_ALLOW_WRITES=1` | ✅ allowed | ✅ allowed |
 
@@ -83,12 +92,13 @@ environment sets `SYNC_ALLOW_WRITES=1`, which **Routine B** does and **Routine A
   pending-slite-changes.json   this round's accepted change-set, written by Routine A
                                (committed into the sync PR). Shape:
                                { "scanGitSha": "<sha A diffed against HEAD at>",
-                                 "to_slite":   [ {path, noteId, action, newContent} ],   git→Slite, applied by B
-                                 "from_slite": [ {path, noteId} ] }                       Slite→git, already in the PR
-                               Routine B uses both lists to advance state.json, then resets it.
+                                 "to_slite":      [ {action, path, noteId, newContent} ],  git→Slite, applied by B
+                                 "from_comments": [ {noteId, threadId, path, author,
+                                                     comment, anchoredText, summary} ] }   comment→both sides, applied+resolved by B
+                               Routine B uses both lists to write Slite, resolve threads, advance state.json, then resets it.
 .claude/
   settings.json                registers the PreToolUse read-only guard on mcp__Slite__*
-  hooks/slite-readonly-guard.sh  blocks Slite writes unless SYNC_ALLOW_WRITES=1
+  hooks/slite-readonly-guard.sh  blocks Slite writes (incl. comment resolves) unless SYNC_ALLOW_WRITES=1
 ```
 
 ### `state.json` schema
@@ -96,41 +106,37 @@ environment sets `SYNC_ALLOW_WRITES=1`, which **Routine B** does and **Routine A
 ```json
 {
   "lastSyncedGitSha": "<sha the repo side was last synced at>",
-  "lastSyncedAt": "<ISO-8601 UTC — audit/logging only; NOT a detection gate (see note above)>",
+  "lastSyncedAt": "<ISO-8601 UTC — audit/logging only; NOT a detection gate>",
   "docs": {
     "planets/mars.md": { "noteId": "e_pXodM6RoMqi8", "repoHash": "<sha256>", "sliteHash": "<sha256>" }
   }
 }
 ```
 
-- **repo changed** = `hash(current repo file) != docs[path].repoHash`
-- **slite changed** = `hash(current Slite md export) != docs[path].sliteHash`
+- **repo changed** = `hash(current repo file) != docs[path].repoHash`  (from `git diff` + hash)
+- **slite body drifted** = `hash(current Slite md export) != docs[path].sliteHash`  (only checked for
+  notes that have an unresolved comment, as a conflict guard — *not* swept across all notes)
 
-Two hashes per doc (not one shared hash) because repo markdown and Slite's md export
+Two hashes per doc (not one shared) because repo markdown and Slite's md export
 still differ even after normalization — Slite rewrites smart quotes to straight,
-inserts a space before some punctuation, and escapes `*` as `\*`. Comparing each side
-only to its own stored hash means those residual export artifacts never read as edits.
-(At seed time ~5 of 16 docs have `repoHash != sliteHash` for exactly these reasons —
-expected and harmless.)
+inserts a space before some punctuation, and escapes `*` as `\*`. Comparing each
+side only to its own stored hash means those residual export artifacts never read
+as edits.
 
-**Hashing is normalized and identical on every side** (the single definition of "what
-counts as a change" lives in `normhash` inside `sync-detect.sh`). It is
+**Hashing is normalized and identical on every side** (the single definition of
+"what counts as a change" lives in `normhash` inside `sync-detect.sh`). It is
 **formatting-insensitive but markup-preserving**:
 
 - **Ignored (formatting, never a change):** leading/trailing whitespace; runs of
-  spaces/tabs collapsed to one (table-column padding); blank lines; hard-wrapping
-  (consecutive text / list-continuation lines are reflowed into one logical line);
-  table-cell padding and the dash-count in separator rows.
-- **Preserved (a real change):** the words/characters themselves, and markdown markup —
-  heading level (`#`/`##`), emphasis (`**`/`_`), list marker (`-`/`*`/`+`), blockquote
-  (`>`), table pipes, links, code. These are characters, not whitespace.
+  spaces/tabs collapsed to one; blank lines; hard-wrapping (consecutive text /
+  list-continuation lines reflowed into one logical line); table-cell padding and
+  the dash-count in separator rows.
+- **Preserved (a real change):** the words/characters themselves, and markdown
+  markup — heading level, emphasis, list marker, blockquote, table pipes, links, code.
 
-So a pure reformat (re-wrap, re-pad a table) hashes the **same** and is not synced; a
-word edit or a markup change hashes **differently** and is. Always hash via
-`bash .sync/sync-detect.sh hash <file>` — repo files directly, Slite exports by writing
-the fetched md to a temp file first. Never hand-roll the hash, or every doc reads as changed.
-Run `bash .sync/sync-detect.sh selftest` to see the rules asserted, or
-`bash .sync/sync-detect.sh normalize <file>` to view a doc's canonical form.
+Always hash via `bash .sync/sync-detect.sh hash <file>` — repo files directly,
+Slite exports by writing the fetched md to a temp file first. Run
+`bash .sync/sync-detect.sh selftest` to see the rules asserted.
 
 ## `sync-detect.sh`
 
@@ -143,46 +149,30 @@ bash .sync/sync-detect.sh selftest        # assert: formatting ignored, content/
 ```
 
 `detect` reads `lastSyncedGitSha` from `state.json`, runs
-`git diff --name-status -M <lastSyncedGitSha>..HEAD` over the doc folders (taken from
+`git diff --name-status -M <lastSyncedGitSha>..HEAD` over the doc folders (from
 `slite-map.json`'s `folders`), hashes each changed file, and **drops no-op reverts**
 (a file touched in a commit but whose normalized content still matches its stored
-`repoHash`). Output:
-
-```json
-{
-  "lastSyncedGitSha": "<sha>",
-  "headSha": "<current HEAD>",
-  "lastSyncedAt": "<ISO-8601>",
-  "repoChanged": [
-    { "path": "planets/mars.md", "status": "modified",
-      "noteId": "e_pXodM6RoMqi8", "storedRepoHash": "…", "newRepoHash": "…",
-      "renamedFrom": null }
-  ],
-  "note": "…Slite side handled by the routine…"
-}
-```
-
-`status` is one of `modified | added | deleted | renamed` (with `renamedFrom` set for
-renames). The script is pure shell + `git` + `python3` (already required by the hook) —
+`repoHash`). Output is `{ lastSyncedGitSha, headSha, lastSyncedAt, repoChanged[], note }`,
+where each `repoChanged[]` item is `{ path, status (modified|added|deleted|renamed),
+noteId, storedRepoHash, newRepoHash, renamedFrom }`. Pure shell + `git` + `python3`,
 **no MCP**, so Routine A can run it deterministically before touching Slite.
 
-## 3-way diff rules (per doc)
+## Change rules (per doc)
 
-| repo changed | slite changed | action |
+| repo (git diff) | unresolved comment on note | action |
 |:---:|:---:|---|
-| yes | no | git is source → **propose Slite edit** (`to_slite`) |
-| no | yes | slite is source → **edit the repo file** (goes into the PR) + `from_slite` |
+| yes | no | git is source → **propose Slite body edit** (`to_slite`) |
+| no | yes | comment is the request → **edit the repo file** (into the PR) **and** queue the Slite body edit + comment resolution (`from_comments`) |
 | yes | yes | **conflict** → report in PR body, change nothing automatically |
 | no | no | skip |
-| new repo file | — | **create Slite note** under the right folder; map updated by B |
-| — | new note | **create repo file**; map updated by B; `from_slite` |
-| repo file deleted | — | **archive the Slite note** (`action: "archive"`); B drops it from map + state |
+| new repo file | — | **create Slite note** under the right folder (`to_slite`, `action: "create"`); map updated by B |
+| repo file deleted | — | **archive the Slite note** (`to_slite`, `action: "archive"`); B drops it from map + state |
 
-**Conflict base = git, not a stored baseline.** When both sides changed, reconstruct
-the common ancestor with `git show <lastSyncedGitSha>:<path>` and show a 3-way diff
-(base→repo and base→slite) in the PR body. Report only; never auto-resolve. No content
-baseline storage is needed because git already preserves the repo-side history and the
-two sides were equivalent (modulo cosmetics) at the last sync.
+**Direct body-edit guard (conflict base = git).** Before applying a comment-driven
+edit, re-fetch the note body and hash it. If it ≠ the stored `sliteHash`, someone
+edited the body directly (against the convention) — treat it as a **conflict**:
+reconstruct the base with `git show <lastSyncedGitSha>:<path>` and report the
+base→repo and base→body diffs in the PR; do not auto-apply. Report only.
 
 ---
 
@@ -195,146 +185,140 @@ two sides were equivalent (modulo cosmetics) at the last sync.
 
 > You are doing a two-way sync between this repo's docs and the Slite "SPACE TEST"
 > folder (root note id `l9rKog-CwRTead`). This run is **read-only on Slite**: a
-> PreToolUse hook blocks every Slite write tool, so propose changes only — never
-> apply them to Slite.
+> PreToolUse hook blocks every Slite write tool (including comment resolves), so
+> propose changes only — never apply them to Slite.
 >
 > **1. Detect repo-side changes (deterministic, no Slite calls).** Run
-> `bash .sync/sync-detect.sh detect`. It prints JSON with `lastSyncedGitSha`,
-> `headSha`, `lastSyncedAt`, and `repoChanged[]` (each: `path`, `status` ∈
-> modified/added/deleted/renamed, `noteId`, `newRepoHash`, `renamedFrom`). Trust this
-> list for the repo side — do **not** re-scan files yourself.
+> `bash .sync/sync-detect.sh detect`. Trust its `repoChanged[]` for the repo side —
+> do **not** re-scan files yourself.
 >
-> **2. Detect Slite-side changes (hash every mapped note — do NOT trust timestamps).**
-> For **every** doc in `.sync/slite-map.json` → `docs`, call `get-note` on its noteId in
-> **markdown**, write the content to a temp file, and hash it with
-> `bash .sync/sync-detect.sh hash <tmpfile>`. A note is "slite changed" iff that hash ≠
-> the doc's `sliteHash` in `.sync/state.json`. **Fetch and hash all of them** — Slite's
-> `updatedAt` / `lastEditedAt` do not reliably bump on a content edit, so you must NOT
-> filter by timestamp (doing so silently misses edits). The hash is the only authority.
-> Then call `get-note-children` on `l9rKog-CwRTead` **once** (page with `nextCursor`
-> while `hasNextPage`) only to discover **new** doc notes under a folder that are not yet
-> in the map; ignore the four folder notes (ids that are values in `slite-map.json` →
-> `folders`).
+> **2. Collect Slite comments (the Slite→repo signal).** For **every** doc in
+> `.sync/slite-map.json` → `docs`, call `list-comment-threads` on its noteId. Keep
+> only threads where `resolved` is false. (This is O(N) light list calls; skip the
+> bodies.) For each unresolved thread, note its `threadId`, the comment text(s), the
+> author, and — if the thread is anchored — the target snippet (the thread
+> `highlight`, or the `<comment id="…">target text</comment>` span you'll see when
+> you `get-note` the note in sliteml). Only `get-note` the **k** notes that have
+> unresolved threads; do not fetch the rest.
 >
-> **3. Apply the 3-way rules**, recording every accepted change in
+> **3. Apply the change rules**, recording every accepted change in
 > `.sync/pending-slite-changes.json`
-> (shape `{ "scanGitSha": "<headSha from step 1>", "to_slite": [...], "from_slite": [...] }`):
+> (shape `{ "scanGitSha": "<headSha from step 1>", "to_slite": [...], "from_comments": [...] }`):
 > - **repo changed only** → append to `to_slite`:
 >   `{ "action": "update", "path": "<path>", "noteId": "<id>", "newContent": "<full repo file text>" }`.
-> - **slite changed only** → **overwrite the repo file** with the fetched Slite md
->   (lands in the PR as a normal git edit) AND append `{ "path": "<path>", "noteId": "<id>" }`
->   to `from_slite`.
-> - **both changed** → do nothing to either side. Reconstruct the base with
->   `git show <lastSyncedGitSha>:<path>` and record the conflict (base→repo and
->   base→slite diffs) for the PR body only — not in either list.
-> - **new repo file** (`status: added`, not in the map) → `to_slite` entry with
+> - **unresolved comment, repo NOT changed** → interpret the comment into a concrete
+>   edit. **Apply it to the repo file** (this lands in the PR as a normal git edit).
+>   Then append to `from_comments`:
+>   `{ "noteId", "threadId", "path", "author", "comment": "<verbatim>",
+>      "anchoredText": "<target snippet or null>", "summary": "<the change in one line>" }`.
+>   If the comment is too vague to act on safely, do **not** edit anything — record
+>   it in the PR body as "needs clarification" (Routine B can reply asking for
+>   specifics) and leave the thread for next time.
+> - **both repo changed AND an unresolved comment on the same doc** → conflict: change
+>   nothing; reconstruct the base with `git show <lastSyncedGitSha>:<path>` and record
+>   the conflict in the PR body only.
+> - **direct body-edit guard** → for each note with an unresolved comment, hash its
+>   current md export (`get-note` md → temp file → `bash .sync/sync-detect.sh hash`).
+>   If it ≠ `sliteHash` in `state.json`, the body was edited directly → conflict;
+>   report, don't apply.
+> - **new repo file** (`status: added`, not in the map) → `to_slite` with
 >   `"action": "create"` (target folder id from `slite-map.json` → `folders`; leave
->   `noteId` empty for B to fill).
-> - **new Slite note** (a doc note under a folder, not in `slite-map.json` → `docs`) →
->   create the repo file from its md under the matching folder, append it to
->   `from_slite` (B adds it to the map).
-> - **repo file deleted** (`status: deleted`) → `to_slite` entry with
->   `"action": "archive"` and the doc's `noteId` (B archives the note and drops the doc).
-> - **renamed** (`status: renamed`, `renamedFrom` set) → keep the same `noteId`; if the
->   content also changed, queue an `"update"`; record the path change for the PR body so
->   B updates the map key `renamedFrom` → `path`.
+>   `noteId` empty for B).
+> - **repo file deleted** (`status: deleted`) → `to_slite` with `"action": "archive"`
+>   and the doc's `noteId`.
 >
-> **4. No-op check — before creating anything.** If `repoChanged` is empty, no note was
-> slite-changed, and there are no conflicts, then STOP: do not create a branch, commit,
-> or open a PR. End the run.
+> **4. No-op check.** If `repoChanged` is empty, there are no unresolved comments, and
+> no conflicts, STOP: do not create a branch, commit, or open a PR. End the run.
 >
-> **5. Stale-cycle guard.** Check open PRs in the repo. If any open PR's head branch
-> starts with `claude/sync-` or `claude/baseline-`, STOP — a prior cycle hasn't
-> finished, so `state.json` may be stale. End the run; it resumes cleanly once that
-> cycle completes.
+> **5. Stale-cycle guard.** Check open PRs. If any open PR's head branch starts with
+> `claude/sync-` or `claude/baseline-`, STOP — a prior cycle hasn't finished. End the run.
 >
 > **6. Open the PR.** Create branch `claude/sync-<YYYY-MM-DD>`, commit the repo-side
-> edits (Slite→repo overwrites, new/renamed files) plus the updated
-> `.sync/pending-slite-changes.json` (with `scanGitSha` set to step 1's `headSha`), and
-> open a PR. The PR body must list, per doc, the sync direction (git→Slite, Slite→git,
-> or conflict, with the 3-way diff for conflicts). Do **not** modify `.sync/state.json`
-> and do **not** write to Slite — those happen only after merge (Routine B).
+> edits (comment-driven file edits, new/deleted files) plus the updated
+> `.sync/pending-slite-changes.json` (`scanGitSha` = step 1's `headSha`), and open a PR.
+> The PR body must list, per doc, the direction (git→Slite, comment→both, or conflict),
+> and for each comment-driven item quote the comment + author + threadId so the reviewer
+> can sanity-check the suggestion. Do **not** modify `.sync/state.json` and do **not**
+> write to Slite — those happen only after merge (Routine B).
 
 ## Routine B — `sync-apply`
 
 **Trigger:** GitHub event → `pull_request.closed`, filters: **is merged = true**,
-**head branch contains `sync`**. (Requires the Claude GitHub App installed on the repo.)
+**head branch contains `sync`**.
 **Repository:** `jyep07/test-slite`  **Connectors:** Slite only
 **Environment:** set **`SYNC_ALLOW_WRITES=1`** so the read-only guard permits Slite
-writes for this routine (use a dedicated environment; do not add this var to Routine A's).
-**Permissions:** Routine B **merges its own bookkeeping PR via the GitHub API**, so it
-does not need the "Allow unrestricted branch pushes" toggle (which won't save under the
-org policy anyway). The one human approval per cycle is the **sync PR**; the
-`claude/baseline-*` PR is auto-merged.
+writes (body + comment resolves) for this routine. Use a dedicated environment; do
+not add this var to Routine A's.
+**Permissions:** Routine B **merges its own bookkeeping PR via the GitHub API**.
 
 **Prompt:**
 
 > A sync PR was just merged. Read `.sync/pending-slite-changes.json` — it has
-> `scanGitSha`, `to_slite` (git→Slite changes to apply), and `from_slite` (Slite→git
-> docs already in the repo), plus `.sync/state.json` and `.sync/slite-map.json`.
+> `scanGitSha`, `to_slite` (git→Slite changes), and `from_comments` (comment-driven
+> edits already applied to the repo files in this PR), plus `.sync/state.json` and
+> `.sync/slite-map.json`.
 >
 > 1. **Apply each `to_slite` entry to Slite:** `update-note` for `"update"`;
 >    `create-note` (under the folder id from `slite-map.json` → `folders`) for
->    `"create"`, writing the new noteId back into both `slite-map.json` → `docs` and the
->    entry; `archive-note` for `"archive"`, then remove that doc from `slite-map.json`
->    → `docs`. For any rename recorded in the PR body, move the `slite-map.json` → `docs`
->    key from the old path to the new path (same noteId).
-> 2. **Advance `state.json`:**
->    - Set `lastSyncedGitSha` = `scanGitSha` from the change-set (the sha Routine A
->      diffed against — **not** the current HEAD). This is what lets the next run still
->      catch any unrelated doc edited between Routine A's scan and this merge: everything
->      after `scanGitSha` is re-examined and filtered by hash.
->    - Set `lastSyncedAt` = now (ISO-8601 UTC) — informational only (audit/logging);
->      the Slite side no longer gates on it.
->    - For each doc in the change-set (the union of `to_slite` and `from_slite`), update
->      `docs[path]`: `repoHash` = `bash .sync/sync-detect.sh hash <repo file>`, and
->      `sliteHash` = re-fetch that note (`get-note`, markdown) → temp file →
->      `bash .sync/sync-detect.sh hash <tmpfile>`. Add new docs (creates / new notes);
->      delete archived docs. Do **not** touch any other doc's entry.
-> 3. **Reset** `.sync/pending-slite-changes.json` to
->    `{ "scanGitSha": "", "to_slite": [], "from_slite": [] }`.
-> 4. **Commit** the updated `state.json`, `slite-map.json`, and reset change-set to a
->    **new branch `claude/baseline-<YYYY-MM-DD-HHMM>`** (must NOT contain "sync", so the
->    merge doesn't re-trigger this routine). Open a PR titled "Baseline update for
->    <date>", then **merge it yourself via the GitHub API** (`merge_pull_request`). Do
->    not commit to `main` directly. Once merged, `state.json` is live and Routine A
->    resumes normally.
+>    `"create"`, writing the new noteId back into `slite-map.json` → `docs` and the
+>    entry; `archive-note` for `"archive"`, then remove that doc from
+>    `slite-map.json` → `docs`.
+> 2. **Apply each `from_comments` entry (both sides + resolve):**
+>    - Read the now-merged repo file at `path` and `update-note(noteId, <that content>)`
+>      so the Slite body matches the repo.
+>    - `reply-to-comment-thread(threadId, "Applied in the sync PR — see <path>.")`
+>      (optional but recommended for an audit trail).
+>    - `resolve-comment-thread(threadId)` so the request is closed and never
+>      reprocessed. (For any "needs clarification" item from the PR body, instead
+>      `reply-to-comment-thread` asking for specifics and leave it unresolved.)
+> 3. **Advance `state.json`:**
+>    - Set `lastSyncedGitSha` = `scanGitSha` (the sha Routine A diffed against — **not**
+>      HEAD), so any unrelated repo doc edited between the scan and this merge is still
+>      caught next run (then filtered by hash).
+>    - Set `lastSyncedAt` = now (ISO-8601 UTC) — informational only.
+>    - For each doc in the union of `to_slite` and `from_comments`, update `docs[path]`:
+>      `repoHash` = `bash .sync/sync-detect.sh hash <repo file>`, and `sliteHash` =
+>      re-fetch the note (`get-note`, markdown) → temp file →
+>      `bash .sync/sync-detect.sh hash`. Add new docs (creates); delete archived docs.
+>      Do **not** touch any other doc's entry.
+> 4. **Reset** `.sync/pending-slite-changes.json` to
+>    `{ "scanGitSha": "", "to_slite": [], "from_comments": [] }`.
+> 5. **Commit** the updated `state.json`, `slite-map.json`, and reset change-set to a
+>    **new branch `claude/baseline-<YYYY-MM-DD-HHMM>`** (must NOT contain "sync"),
+>    open a PR "Baseline update for <date>", then **merge it yourself via the GitHub
+>    API** (`merge_pull_request`). Do not commit to `main` directly.
 >
-> Advancing `lastSyncedGitSha` to `scanGitSha` (not HEAD) and updating only the
-> change-set's docs is deliberate: if someone edited an unrelated **repo** doc between
-> Routine A and this merge, a blanket advance to HEAD would hide that edit from the next
-> `git diff`. Rewinding `lastSyncedGitSha` to the scan point lets the next run still
-> diff it (the hash check then drops the docs already converged here). Slite-side
-> stragglers need no such care — Routine A hash-sweeps every mapped note each run, so a
-> missed Slite edit is always caught on the next run regardless of timing.
+> Advancing `lastSyncedGitSha` to `scanGitSha` (not HEAD) is deliberate: a blanket
+> advance to HEAD would hide an unrelated repo edit made between Routine A's scan and
+> this merge. Comment-side stragglers need no such care — an unresolved thread is
+> simply picked up on the next run.
 
 ---
 
 ## Prerequisites
 
 1. **Add Slite as a claude.ai connector** at claude.ai/customize/connectors — a
-   routine can't use a CLI-only MCP server. (Or commit a `.mcp.json`.)
+   routine can't use a CLI-only MCP server.
 2. **Install the Claude GitHub App** on `jyep07/test-slite` — required for Routine B's
-   PR-merge trigger and for its API self-merge (`/web-setup` alone does not enable webhooks).
-3. Default "Trusted" network access is sufficient; Slite traffic routes through
-   Anthropic and GitHub is allowed.
+   PR-merge trigger and its API self-merge.
+3. Default "Trusted" network access is sufficient; Slite traffic routes through Anthropic.
 
 ## Testing it
 
 1. Create **Routine A** only, trigger = manual.
-2. Make one change on one side (edit `planets/mars.md`, or edit the Mars note in Slite).
-3. **Run now** → confirm the PR shows the right direction and a sane
-   `pending-slite-changes.json` (with `scanGitSha` set). A quiet run (no changes) must
-   open **no** PR.
-4. Once that's solid, add **Routine B** + the merge trigger, merge the sync PR, and
-   verify: the Slite note updates, `state.json` advanced (`lastSyncedGitSha` =
-   `scanGitSha`, hashes updated for the changed docs only), and the baseline PR
-   auto-merged.
+2. **Leave a comment** on one Slite note (e.g. on the Saturn note: anchor a comment to
+   a value and write the correction). Optionally also edit a repo file to exercise the
+   git→Slite direction.
+3. **Run now** → confirm the PR: the comment-driven doc shows a repo edit + a
+   `from_comments` entry quoting the comment; a git-only change shows a `to_slite`
+   entry. A quiet run (no repo changes, no unresolved comments) must open **no** PR.
+4. Add **Routine B** + the merge trigger, merge the sync PR, and verify: the Slite note
+   body updated, **the comment thread is resolved** (and replied to), `state.json`
+   advanced (`lastSyncedGitSha` = `scanGitSha`, hashes updated for the changed docs
+   only), and the baseline PR auto-merged.
 
 ## Re-seeding `state.json` (if it ever drifts)
 
-`state.json` was seeded by hashing every repo file and every Slite md export with
-`sync-detect.sh hash` (so both sides use identical normalization), with
-`lastSyncedGitSha` = the seed commit and `lastSyncedAt` = seed time. To re-seed, repeat
-that: for each doc in `slite-map.json` → `docs`, `repoHash` = hash of the repo file,
-`sliteHash` = hash of the note's current md export.
+For each doc in `slite-map.json` → `docs`, `repoHash` = hash of the repo file,
+`sliteHash` = hash of the note's current md export (both via `sync-detect.sh hash`),
+with `lastSyncedGitSha` = the seed commit and `lastSyncedAt` = seed time.
