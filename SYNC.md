@@ -8,7 +8,7 @@ approval still happens at a single point: **merging the sync PR**.
 ```
  Git repo ──┐  sync-detect.sh: git diff <lastSyncedGitSha>..HEAD + hash   ┌─ open sync PR  → human merges
             ├─ Routine A (change detect, read-only on Slite) ─────────────┤
- Slite ─────┘  get-note-children → updatedAt > lastSyncedAt → get-note    └─ Routine B applies + advances state.json (self-merged PR)
+ Slite ─────┘  get-note per mapped note → hash vs sliteHash             └─ Routine B applies + advances state.json (self-merged PR)
 ```
 
 ## What changed from v1 (and why)
@@ -18,17 +18,27 @@ v1's Routine A did a **full O(N) scan every run**: it read 48 files (16 docs ×
 diffed all of it in one context. At 16 docs it was already slow (10+ min) and
 sometimes failed; it did not scale.
 
-v2 removes the full scan:
+v2 removes the heavy parts of the scan:
 
 | Per run | v1 | v2 |
 |---|---|---|
 | Baseline file reads | 32 | **0** — hashes live in `state.json` |
-| Slite note fetches | 16 (all) | **only notes with `updatedAt > lastSyncedAt`** |
+| Slite note fetches | 16 (all) | 16 (all) — fetch + hash, but **store only a hash, no big-context diff** |
 | Repo file reads | 16 (all) | **only files in `git diff <sha>..HEAD`** |
-| Quiet run | 64 ops + huge context | one `git diff` + one `get-note-children` call |
+| Single-context diff of everything | yes (the bottleneck) | **no** — per-doc hash compare |
 
 The two content baseline trees (`.sync/baseline/`, `.sync/baseline-slite/`) are
 **gone**, replaced by a single `.sync/state.json` holding one hash per side per doc.
+
+> **Why the Slite side still fetches every note.** The original v2 plan filtered
+> Slite reads by `updatedAt > lastSyncedAt`. Testing showed Slite's edit timestamps
+> (`updatedAt`, `lastEditedAt`, and `list-recently-edited-notes`) **do not reliably
+> bump on a content edit** — a real edit to a note left all three frozen, so the
+> filter silently skipped it. The hash is the only trustworthy signal, so Routine A
+> **fetches every mapped note and hash-compares** it to `sliteHash`. The repo side is
+> still O(changes) via `git diff`; the Slite side is O(N) *fetches* but still O(1)
+> *storage* (one hash per note) and avoids v1's real cost — loading every doc into one
+> context to diff. `lastSyncedAt` is kept for audit/logging but is no longer a gate.
 
 ## Why two routines (unchanged from v1)
 
@@ -86,7 +96,7 @@ environment sets `SYNC_ALLOW_WRITES=1`, which **Routine B** does and **Routine A
 ```json
 {
   "lastSyncedGitSha": "<sha the repo side was last synced at>",
-  "lastSyncedAt": "<ISO-8601 UTC — the Slite-side watermark>",
+  "lastSyncedAt": "<ISO-8601 UTC — audit/logging only; NOT a detection gate (see note above)>",
   "docs": {
     "planets/mars.md": { "noteId": "e_pXodM6RoMqi8", "repoHash": "<sha256>", "sliteHash": "<sha256>" }
   }
@@ -194,15 +204,17 @@ two sides were equivalent (modulo cosmetics) at the last sync.
 > modified/added/deleted/renamed, `noteId`, `newRepoHash`, `renamedFrom`). Trust this
 > list for the repo side — do **not** re-scan files yourself.
 >
-> **2. Detect Slite-side changes (only what moved).** Call `get-note-children` on
-> `l9rKog-CwRTead` (page with `nextCursor` while `hasNextPage`). It returns every note
-> in the tree with its `updatedAt`. Ignore the four folder notes (the ones whose ids
-> are values in `.sync/slite-map.json` → `folders`). For each **doc** note with
-> `updatedAt > lastSyncedAt`: call `get-note` in **markdown**, write the content to a
-> temp file, and hash it with `bash .sync/sync-detect.sh hash <tmpfile>`. A note is
-> "slite changed" iff that hash ≠ the doc's `sliteHash` in `.sync/state.json`. Notes
-> with `updatedAt ≤ lastSyncedAt` did not change — do not fetch them. Map noteId→path
-> via `.sync/slite-map.json` → `docs`.
+> **2. Detect Slite-side changes (hash every mapped note — do NOT trust timestamps).**
+> For **every** doc in `.sync/slite-map.json` → `docs`, call `get-note` on its noteId in
+> **markdown**, write the content to a temp file, and hash it with
+> `bash .sync/sync-detect.sh hash <tmpfile>`. A note is "slite changed" iff that hash ≠
+> the doc's `sliteHash` in `.sync/state.json`. **Fetch and hash all of them** — Slite's
+> `updatedAt` / `lastEditedAt` do not reliably bump on a content edit, so you must NOT
+> filter by timestamp (doing so silently misses edits). The hash is the only authority.
+> Then call `get-note-children` on `l9rKog-CwRTead` **once** (page with `nextCursor`
+> while `hasNextPage`) only to discover **new** doc notes under a folder that are not yet
+> in the map; ignore the four folder notes (ids that are values in `slite-map.json` →
+> `folders`).
 >
 > **3. Apply the 3-way rules**, recording every accepted change in
 > `.sync/pending-slite-changes.json`
@@ -272,7 +284,8 @@ org policy anyway). The one human approval per cycle is the **sync PR**; the
 >      diffed against — **not** the current HEAD). This is what lets the next run still
 >      catch any unrelated doc edited between Routine A's scan and this merge: everything
 >      after `scanGitSha` is re-examined and filtered by hash.
->    - Set `lastSyncedAt` = now (ISO-8601 UTC).
+>    - Set `lastSyncedAt` = now (ISO-8601 UTC) — informational only (audit/logging);
+>      the Slite side no longer gates on it.
 >    - For each doc in the change-set (the union of `to_slite` and `from_slite`), update
 >      `docs[path]`: `repoHash` = `bash .sync/sync-detect.sh hash <repo file>`, and
 >      `sliteHash` = re-fetch that note (`get-note`, markdown) → temp file →
@@ -288,10 +301,12 @@ org policy anyway). The one human approval per cycle is the **sync PR**; the
 >    resumes normally.
 >
 > Advancing `lastSyncedGitSha` to `scanGitSha` (not HEAD) and updating only the
-> change-set's docs is deliberate: if someone edited an unrelated doc between Routine A
-> and this merge, a blanket advance to HEAD would hide that edit forever. Scoping the
-> hash updates and rewinding the watermark to the scan point lets the next run still
-> detect it (the hash check drops the docs already converged here).
+> change-set's docs is deliberate: if someone edited an unrelated **repo** doc between
+> Routine A and this merge, a blanket advance to HEAD would hide that edit from the next
+> `git diff`. Rewinding `lastSyncedGitSha` to the scan point lets the next run still
+> diff it (the hash check then drops the docs already converged here). Slite-side
+> stragglers need no such care — Routine A hash-sweeps every mapped note each run, so a
+> missed Slite edit is always caught on the next run regardless of timing.
 
 ---
 

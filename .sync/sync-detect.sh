@@ -5,8 +5,8 @@
 # with change detection. This script owns the *repo* side: it answers "which docs
 # changed in git since the last sync?" using `git diff` against the recorded
 # lastSyncedGitSha, plus content hashing to drop no-op reverts. It calls NO MCP /
-# Slite tools — the Slite side is handled by Routine A via get-note-children's
-# updatedAt (see SYNC.md).
+# Slite tools — the Slite side is handled by Routine A, which hash-compares every
+# mapped note (Slite's edit timestamps are unreliable; see SYNC.md).
 #
 # Usage:
 #   .sync/sync-detect.sh                  # or: detect  -> emits the change-set JSON
@@ -265,9 +265,9 @@ out = {
     "headSha": head,
     "lastSyncedAt": state.get("lastSyncedAt"),
     "repoChanged": changes,
-    "note": ("Slite side is detected by Routine A: get-note-children on the SPACE "
-             "TEST root, keep notes with updatedAt > lastSyncedAt, then get-note "
-             "(md) only those and hash with `sync-detect.sh hash`."),
+    "note": ("Slite side is detected by Routine A: get-note (md) for EVERY mapped "
+             "note and hash-compare to sliteHash with `sync-detect.sh hash`. Do not "
+             "filter by updatedAt — Slite's edit timestamps are unreliable."),
 }
 print(json.dumps(out, indent=2))
 PY
