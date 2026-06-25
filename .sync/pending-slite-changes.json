@@ -1,1 +1,10 @@
-{ "scanGitSha": "", "to_slite": [], "from_slite": [] }
+{
+  "scanGitSha": "1a6c96e45214bfb5893f630cd672c8cb81362f56",
+  "to_slite": [],
+  "from_slite": [
+    {
+      "path": "planets/saturn.md",
+      "noteId": "PI1LZRVkJ2oRfV"
+    }
+  ]
+}
