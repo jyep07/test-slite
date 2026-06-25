@@ -1,11 +1,11 @@
 {
-  "lastSyncedGitSha": "1a6c96e45214bfb5893f630cd672c8cb81362f56",
-  "lastSyncedAt": "2026-06-25T15:27:53Z",
+  "lastSyncedGitSha": "5a838fd0590b775a679d28cdb127e613e9fa8da9",
+  "lastSyncedAt": "2026-06-25T15:49:30Z",
   "docs": {
     "moons/europa.md": {
       "noteId": "L4gCAfhOBqbyO1",
-      "repoHash": "e5add7b6f7ba27dbde2e1bc1320c163c4e9049a5c59fe31d424a3bec662dfca7",
-      "sliteHash": "d11577e963bccc475302fa6999efe428f55f279371fbbc476aa25e14bbf4cd7b"
+      "repoHash": "70662a926e4e8999466fa4922d7dd3be316305813d37ed41e75e4e999d036028",
+      "sliteHash": "7d97711aa692de5b856795a3eaceca523df7f45ae09df84b0db8494c1b417dc8"
     },
     "moons/the-moon.md": {
       "noteId": "A53Qrw6OnyVuh4",
@@ -19,7 +19,7 @@
     },
     "planets/earth.md": {
       "noteId": "GHF_EZuuNsbsOx",
-      "repoHash": "c9c9cfec3d01fda48deffcddfd28b4c0544eef3fdfcb63e168cdbba8736d3487",
+      "repoHash": "3b8d53cac295c82d74b05967912429d627a1341d4e141913a1f51337e7482aab",
       "sliteHash": "ecfeb7722f3856f3f519bc21bd12fe1d665cc3ae569fd022333583a897beffd0"
     },
     "planets/jupiter.md": {
@@ -29,8 +29,8 @@
     },
     "planets/mars.md": {
       "noteId": "e_pXodM6RoMqi8",
-      "repoHash": "151c07ab1f4990336a80383399c8f425314505a3fa5431c08a1d7bd665056870",
-      "sliteHash": "151c07ab1f4990336a80383399c8f425314505a3fa5431c08a1d7bd665056870"
+      "repoHash": "dc979c558e2c51dc038f5aadb8d8c172b675ff45e24102f793782736ac6cc83b",
+      "sliteHash": "e903d1798f837973292327849b9fba4fd20a4fd0b27481b701857297591ca2b7"
     },
     "planets/mercury.md": {
       "noteId": "OffA454HBYFUH2",
@@ -74,8 +74,8 @@
     },
     "stars-and-galaxies/milky-way.md": {
       "noteId": "VRuFvQ2bSF6X2C",
-      "repoHash": "69269a9bb83c34b02f8ac768d9f92d23d0bb2244c6d3a12864b496a7803a5bcc",
-      "sliteHash": "69269a9bb83c34b02f8ac768d9f92d23d0bb2244c6d3a12864b496a7803a5bcc"
+      "repoHash": "10508a0ea79cf0b1b02631d2a0bfa87c46768b7d69f1bcb03e6cf650ecc010fc",
+      "sliteHash": "10508a0ea79cf0b1b02631d2a0bfa87c46768b7d69f1bcb03e6cf650ecc010fc"
     },
     "stars-and-galaxies/the-sun.md": {
       "noteId": "Z9XqExuTkn7Ekq",
