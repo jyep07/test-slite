@@ -89,6 +89,79 @@ SYNC.md                              full design + Routine A/B prompts (comment-
    **the comment thread is resolved/replied**, `state.json` advanced, baseline PR
    auto-merged.
 
+## Kickoff prompts for a fresh session
+
+### Routine A — `sync-plan` (read-only dry run → opens the sync PR)
+
+```
+Test the comment-driven GitHub↔Slite sync in repo jyep07/test-slite.
+
+START HERE: check out branch `claude/slite-comment-sync` and read HANDOFF.md
+then SYNC.md before doing anything. Do all work on that branch — never touch
+`main`. Make sure the Slite connector is attached.
+
+SETUP (I'll do this, or confirm it's done): I've left a comment on one Slite
+note in the SPACE TEST folder — e.g. on the "Saturn" note, anchored to a value,
+requesting a correction. Treat that unresolved comment as the change request.
+
+YOUR TASK — run a Routine A (`sync-plan`) dry run, exactly as specified in
+SYNC.md. Specifically:
+1. Run `bash .sync/sync-detect.sh detect` for the repo side.
+2. For every doc in .sync/slite-map.json → docs, call `list-comment-threads` on
+   its noteId and keep only UNRESOLVED threads. Only `get-note` the notes that
+   have unresolved comments.
+3. Apply the change rules: turn each unresolved comment into a concrete edit to
+   the repo file, and queue a from_comments entry {noteId, threadId, path,
+   author, comment, anchoredText, summary}. Run the direct-body-edit conflict
+   guard (compare the note's md hash to sliteHash in state.json).
+4. This run is READ-ONLY on Slite — the PreToolUse hook blocks every Slite write
+   (including resolve/reply). Do NOT apply anything to Slite; only propose.
+5. Open a sync PR on branch `claude/sync-<date>` containing the repo edit + the
+   updated .sync/pending-slite-changes.json, with a PR body that quotes the
+   comment (author + threadId) next to the suggested edit. If there are no repo
+   changes and no unresolved comments, open NO PR.
+
+Before you start, tell me: which Slite note + comment you found, what edit you
+intend to make, and which repo file it maps to. Then proceed.
+
+DO NOT run Routine B (the apply/resolve step) yet — I want to review the PR first.
+```
+
+### Routine B — `sync-apply` (after you merge the sync PR → writes + resolves)
+
+```
+The sync PR for the comment-driven GitHub↔Slite sync (repo jyep07/test-slite,
+branch family `claude/sync-*`) is merged. Run Routine B (`sync-apply`) exactly as
+specified in SYNC.md, with the Slite connector attached and SYNC_ALLOW_WRITES=1
+set so the read-only guard permits Slite writes (body + comment resolves) for
+this run only.
+
+Steps (per SYNC.md):
+1. Read .sync/pending-slite-changes.json (scanGitSha, to_slite, from_comments),
+   plus state.json and slite-map.json.
+2. Apply each to_slite entry to Slite: update-note / create-note (under the
+   folder id from slite-map.json → folders, write the new noteId back) /
+   archive-note (then drop the doc from slite-map.json → docs).
+3. Apply each from_comments entry: read the now-merged repo file at `path` and
+   `update-note(noteId, <that content>)` so the body matches the repo;
+   `reply-to-comment-thread(threadId, "Applied in the sync PR — see <path>.")`;
+   then `resolve-comment-thread(threadId)`. For any "needs clarification" item,
+   reply asking for specifics and leave it unresolved.
+4. Advance state.json: lastSyncedGitSha = scanGitSha (NOT HEAD); lastSyncedAt =
+   now; for each doc in the union of to_slite + from_comments, set repoHash =
+   `bash .sync/sync-detect.sh hash <repo file>` and sliteHash = re-fetch the note
+   (get-note md → temp file → `sync-detect.sh hash`). Add creates, drop archives.
+5. Reset .sync/pending-slite-changes.json to
+   { "scanGitSha": "", "to_slite": [], "from_comments": [] }.
+6. Commit state.json + slite-map.json + the reset queue to a NEW branch
+   `claude/baseline-<YYYY-MM-DD-HHMM>` (must NOT contain "sync"), open a PR
+   "Baseline update for <date>", and merge it yourself via the GitHub API.
+   Do not commit to `main` directly.
+
+Then report: which notes were updated, which comment threads were resolved, and
+the new lastSyncedGitSha.
+```
+
 ## Open / not yet done
 
 - Live end-to-end demo (drop a real comment, run a Routine A pass) — not run yet.
