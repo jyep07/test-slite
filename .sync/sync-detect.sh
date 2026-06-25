@@ -265,9 +265,11 @@ out = {
     "headSha": head,
     "lastSyncedAt": state.get("lastSyncedAt"),
     "repoChanged": changes,
-    "note": ("Slite side is detected by Routine A: get-note (md) for EVERY mapped "
-             "note and hash-compare to sliteHash with `sync-detect.sh hash`. Do not "
-             "filter by updatedAt — Slite's edit timestamps are unreliable."),
+    "note": ("Slite side is comment-driven: Routine A calls list-comment-threads "
+             "per mapped note and acts only on UNRESOLVED threads (O(N) light list "
+             "calls; full get-note only for the notes that have a comment, as a "
+             "direct-body-edit conflict guard). Comments are the change signal — "
+             "Slite edit timestamps are unreliable and are not used."),
 }
 print(json.dumps(out, indent=2))
 PY
