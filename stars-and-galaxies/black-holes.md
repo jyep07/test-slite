@@ -5,7 +5,7 @@ not even light — can escape from it.
 
 ## Overview
 
-Black holes form when massive objects collapse under their own gravity. The
+Black holes originate from when enormous objects collapse under their own gravity. The
 boundary beyond which nothing can return is called the **event horizon**. At the
 center lies the **singularity**, a point of theoretically infinite density.
 
