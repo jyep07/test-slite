@@ -1,86 +1,86 @@
 {
-  "lastSyncedGitSha": "bb6b93b90071a1d965c7b572837a08e922145b30",
-  "lastSyncedAt": "2026-06-24T23:10:11Z",
+  "lastSyncedGitSha": "fd552ac84a86172ce0d9cb82762217b294ee45bb",
+  "lastSyncedAt": "2026-06-25T14:32:45Z",
   "docs": {
     "moons/europa.md": {
       "noteId": "L4gCAfhOBqbyO1",
-      "repoHash": "68f6a2c04e62c446a1b73cd08ebd3f054d1a630895604ffcf95d7f2826a2cbd5",
-      "sliteHash": "881cbb24ed8456ee5686ee4226f2b08c4f66a8d0f8594e687d43b623f5c7d92b"
+      "repoHash": "e5add7b6f7ba27dbde2e1bc1320c163c4e9049a5c59fe31d424a3bec662dfca7",
+      "sliteHash": "d11577e963bccc475302fa6999efe428f55f279371fbbc476aa25e14bbf4cd7b"
     },
     "moons/the-moon.md": {
       "noteId": "A53Qrw6OnyVuh4",
-      "repoHash": "4597b2d1e8a7a853932598800ad25975c08fe6cac8550c486ed0be2d1050fc62",
-      "sliteHash": "4597b2d1e8a7a853932598800ad25975c08fe6cac8550c486ed0be2d1050fc62"
+      "repoHash": "8da8f80b00d304f4befb52f630b026b0a20846eb8216ecdc8d35050bc8d5d7db",
+      "sliteHash": "8da8f80b00d304f4befb52f630b026b0a20846eb8216ecdc8d35050bc8d5d7db"
     },
     "moons/titan.md": {
       "noteId": "tBRYmBvCQMkoXY",
-      "repoHash": "560e7ecbf3d3b1cf486ceed768b4c59dfc87d32fdb8dcb0745fc148d3fe94a3f",
-      "sliteHash": "c13731a2c032bca48a686e80e4380dbc145816f516a609ff1bdaa055696f8ab1"
+      "repoHash": "f4375617203da0a92c24508ee7cd4db840506bb2ac339504ea7ef13d671b52a7",
+      "sliteHash": "f4375617203da0a92c24508ee7cd4db840506bb2ac339504ea7ef13d671b52a7"
     },
     "planets/earth.md": {
       "noteId": "GHF_EZuuNsbsOx",
-      "repoHash": "9b3b8959f573aaed5f4ddeba2beb2b1d3ad4913da147ecfd0f19b12e98903eda",
-      "sliteHash": "d06fde8b413e4bcd6d666e37faeda6d4d80e0ad7947d2721a89aafb1ce1eaef3"
+      "repoHash": "c9c9cfec3d01fda48deffcddfd28b4c0544eef3fdfcb63e168cdbba8736d3487",
+      "sliteHash": "ecfeb7722f3856f3f519bc21bd12fe1d665cc3ae569fd022333583a897beffd0"
     },
     "planets/jupiter.md": {
       "noteId": "s5_Qtl8-ZyrnMo",
-      "repoHash": "c192ca7bd69d38e1adc0d9a5c852662f08a22c340ae57d0a5f283599092cfe4e",
-      "sliteHash": "fe8467ee83eb37465e48ea2ad10f07bd8766f6b92d7983e5653b60f0a91a5bd7"
+      "repoHash": "d816c2770adcb7f0eae335045badcfe83c4814db55f42bba7cbb12638edce930",
+      "sliteHash": "d816c2770adcb7f0eae335045badcfe83c4814db55f42bba7cbb12638edce930"
     },
     "planets/mars.md": {
       "noteId": "e_pXodM6RoMqi8",
-      "repoHash": "e84482a767d3a06c58928d802c20a17babf5841c267aabda61715b6839b54ea5",
-      "sliteHash": "ff6a7764afbf49ac4334a7c55ca9bfbfde050e3c926e771702ace2a028cee4d8"
+      "repoHash": "151c07ab1f4990336a80383399c8f425314505a3fa5431c08a1d7bd665056870",
+      "sliteHash": "151c07ab1f4990336a80383399c8f425314505a3fa5431c08a1d7bd665056870"
     },
     "planets/mercury.md": {
       "noteId": "OffA454HBYFUH2",
-      "repoHash": "2eafa6382f942c47f0544fcb2e1fe52255fa187ee0c22eba30cd28a98e3a3b78",
-      "sliteHash": "d63c969f2ac5d12a582e80de30e855e5926f410cd4c326d966b2d4579a31a9de"
+      "repoHash": "799ad1b3aae96f7bbb8e5b95ed2462bd12d91359cfcb733e72cc1ac69f5886c0",
+      "sliteHash": "e8d95d6cc96f33d707faeccef674bd7cdf62d6f858d25b5734fe22278ce8f67c"
     },
     "planets/saturn.md": {
       "noteId": "PI1LZRVkJ2oRfV",
-      "repoHash": "9dd426e41360e04b4d739a508e132049f7ed4aac4874c34d732b86e12491d8dd",
-      "sliteHash": "5365f09ff65715b6db722c82927b518d7a609ff08f3c4d268189db67556be352"
+      "repoHash": "a876d3422fb923a82c9f2c7fc0a894cf02bb59c1cc3dbda2053697c4e34a3f3f",
+      "sliteHash": "a876d3422fb923a82c9f2c7fc0a894cf02bb59c1cc3dbda2053697c4e34a3f3f"
     },
     "planets/venus.md": {
       "noteId": "_6v_97TDGnTA88",
-      "repoHash": "4bb4b54872146216a121ac961117c6b83434e39315e7956ea632b23f3e1c7ff3",
-      "sliteHash": "be908f429c55d0f70bccbcb33ce038dfad3ce8207c6a53a722f982c4ac2f32cb"
+      "repoHash": "99030a99183bdbb3ff208493380cf55bab1c2a8a5b8cea0e4e9344a57ad1d093",
+      "sliteHash": "232b3589f427d63ee060e34bfb888c26b39973d567bb22583b525f87faa567c6"
     },
     "space-exploration/apollo-program.md": {
       "noteId": "ZtDxPbalt2dHRj",
-      "repoHash": "29f22881569bc286182d23ded06fd18905baa4a1d7d575766fb8ea85be1225bd",
-      "sliteHash": "1565344641c96f0e23756960d46ee9ad3a37e37948252a5f67715e27aa497421"
+      "repoHash": "065175927595eb3b70a47857fc42d793ca4e99d97cfad8609bb8688e59255d2d",
+      "sliteHash": "065175927595eb3b70a47857fc42d793ca4e99d97cfad8609bb8688e59255d2d"
     },
     "space-exploration/james-webb-telescope.md": {
       "noteId": "0sw78vhuvqZ0UU",
-      "repoHash": "7093688e873a383110822da35fb564280f731156528920184f1c942e03ac28d8",
-      "sliteHash": "3fbdd51450e379304aa77c3a79c5e1425f51ccdda37e7744a4958c555a069e1a"
+      "repoHash": "dcbe1b62cc4e25ed664f8dd84e76cbcbd7ccc6288cd442907b47fad25f5c63e2",
+      "sliteHash": "dcbe1b62cc4e25ed664f8dd84e76cbcbd7ccc6288cd442907b47fad25f5c63e2"
     },
     "space-exploration/the-iss.md": {
       "noteId": "JuInoGYE8v5jTV",
-      "repoHash": "c37701f842cd0c8fe943e0ed7590d957b77ca63b9f3e417b4e3bb3e4dd73f83b",
-      "sliteHash": "e49a940e5fc51b4a11b0f449c49cc320ac2b77b95c603ee174a106ba91e571d1"
+      "repoHash": "30e1861765dc6f6d188ea1960204d3014b5df422987dcb0c9127118294cde6e8",
+      "sliteHash": "30e1861765dc6f6d188ea1960204d3014b5df422987dcb0c9127118294cde6e8"
     },
     "space-exploration/voyager-program.md": {
       "noteId": "1TT9BnrIbEwUbO",
-      "repoHash": "6ee8bfc16d438dbdac142870e8eaf609bbf2f920212432b729be3f7660497ef4",
-      "sliteHash": "0bc54ebf772319a1e00935d62892ad9680ef45b7a54ee26ee631c1ca53ffd09a"
+      "repoHash": "4d9d3100ef1cf354a208902e3a42b0d2a78c50e2c6562d5dd632cd7838ee2f46",
+      "sliteHash": "4d9d3100ef1cf354a208902e3a42b0d2a78c50e2c6562d5dd632cd7838ee2f46"
     },
     "stars-and-galaxies/black-holes.md": {
       "noteId": "tKrAi8saqc2oMG",
-      "repoHash": "7fefc4c0356106e1406aaa28f5dd3b6f15f81ddb93eda539873f608ae4ba4e2a",
-      "sliteHash": "b121f3eab05de0622b2f0b4d1e9acccdcab39b15582371ead6f88a423a1bff48"
+      "repoHash": "9e54f896204ad3bc2d8c76a6c0b19b281065a0833264028c0cf993da8e925e58",
+      "sliteHash": "16e6ed27bf464a43030ee07cd48afbee7870bd4d51458a923682d6e831d3b5ff"
     },
     "stars-and-galaxies/milky-way.md": {
       "noteId": "VRuFvQ2bSF6X2C",
-      "repoHash": "e8967401f3a8d519de8313e2ecca856bc22f3a2e15215d161d089ed2b229dfcd",
-      "sliteHash": "e8967401f3a8d519de8313e2ecca856bc22f3a2e15215d161d089ed2b229dfcd"
+      "repoHash": "69269a9bb83c34b02f8ac768d9f92d23d0bb2244c6d3a12864b496a7803a5bcc",
+      "sliteHash": "69269a9bb83c34b02f8ac768d9f92d23d0bb2244c6d3a12864b496a7803a5bcc"
     },
     "stars-and-galaxies/the-sun.md": {
       "noteId": "Z9XqExuTkn7Ekq",
-      "repoHash": "1c9cc7ccefb4457dd210614be87f9bc822020c109312bf35bce338dfe7af7420",
-      "sliteHash": "83af8aa21fba7dfc2930a8ed67e006252db89f01849c16abcee74edaf7a3cad8"
+      "repoHash": "3b510a26ad237111d7042a3cca09b01c8383fcc6b8b2e9710644421985f8265c",
+      "sliteHash": "3b510a26ad237111d7042a3cca09b01c8383fcc6b8b2e9710644421985f8265c"
     }
   }
 }
