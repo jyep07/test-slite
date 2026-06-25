@@ -16,12 +16,6 @@ Profiles of planets in the Solar System.
 - [Jupiter](planets/jupiter.md)
 - [Saturn](planets/saturn.md)
 
-### 🌑 [moons/](moons/)
-Notable natural satellites.
-- [The Moon](moons/the-moon.md)
-- [Europa](moons/europa.md)
-- [Titan](moons/titan.md)
-
 ### ✨ [stars-and-galaxies/](stars-and-galaxies/)
 Stars, galaxies, and deep-space objects.
 - [The Sun](stars-and-galaxies/the-sun.md)
@@ -40,7 +34,6 @@ Missions, spacecraft, and human spaceflight.
 | Folder | Documents |
 |--------|-----------|
 | planets | 6 |
-| moons | 3 |
 | stars-and-galaxies | 3 |
 | space-exploration | 4 |
-| **Total** | **16** |
+| **Total** | **13** |
