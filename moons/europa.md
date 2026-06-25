@@ -1,8 +1,6 @@
 # Europa
 
-Europa is the smallest of Jupiter’s four Galilean moons and one of the most
-
-promising places to search for extraterrestrial life.
+Europa is the smallest of Jupiter’s 4 Galilean moons and one of the most promising places to search for extraterrestrial life.
 
 ## Quick Facts
 
