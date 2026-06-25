@@ -1,4 +1,4 @@
-# The ... Milky Way
+# The Milky Way
 
 The Milky Way is the barred spiral galaxy that contains our Solar System.
 
