@@ -1,10 +1,9 @@
 # Google Docs ↔ GitHub sync (doc-repo model)
 
 This branch (`claude/doc-repo-sync`) syncs this repo's markdown knowledge base
-with a set of **Google Docs** in the Drive folder **Space KB**, using the same
-change-detection design as the Slite sync (`SYNC.md`) but pointed at Google
-Drive. The Slite machinery on `main` is untouched and runs in parallel — the two
-models share nothing but the normalizer's *logic* (each has its own copy).
+with a set of **Google Docs** in the Drive folder **Space KB**, using an
+O(changes) change-detection design (`git diff` on the repo side, a content hash
+on the Drive side).
 
 > **Status: detection is fully working; repo→Doc write-back is partial.** The
 > Google Drive connector in this environment is **read + create only** (no move,

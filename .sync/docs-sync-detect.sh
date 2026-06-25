@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Deterministic repo-side change detector for the GitHub <-> Google Docs sync.
 #
-# This is the Google Docs analogue of sync-detect.sh (which targets Slite). It
-# owns the *repo* side: "which docs changed in git since the last sync?" using
+# It owns the *repo* side: "which docs changed in git since the last sync?" using
 # `git diff` against the recorded lastSyncedGitSha, plus content hashing to drop
 # no-op reverts. It calls NO MCP / Drive tools — the Drive side is handled by
 # Routine A, which hash-compares every mapped Doc.
@@ -21,7 +20,7 @@
 #   .sync/docs-sync-detect.sh normalize <file> # print the canonical (normalized) text
 #   .sync/docs-sync-detect.sh selftest         # assert the normalizer ignores formatting, keeps content
 #
-# NORMALIZATION is identical to sync-detect.sh: formatting-insensitive
+# NORMALIZATION is formatting-insensitive
 # (whitespace runs, blank lines, hard-wrapping, table padding, separator
 # dash-count) but markup-preserving (#, **, list markers, >, pipes, links).
 # Each side is compared only against its OWN stored hash (repoHash vs driveHash),
@@ -36,7 +35,7 @@ MAP_FILE="$SCRIPT_DIR/drive-map.json"
 
 # The canonical normalizer. Reads a file path (argv[1]) and writes normalized text
 # to stdout. Shared by hash / normalize / detect so every caller agrees byte-for-byte.
-# MUST stay character-identical to sync-detect.sh's NORM_CODE.
+# The single source of truth for normalization on the doc-repo sync.
 NORM_CODE=$(cat <<'PY'
 import sys, re
 

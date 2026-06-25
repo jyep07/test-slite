@@ -4,7 +4,7 @@
 # Purpose: Routine A (sync detect / dry run) must READ Google Drive but never
 # WRITE to it. This hook is enforced by the Claude Code harness, not the model,
 # so it holds even in autonomous routine runs where connector tools are
-# otherwise callable freely. It mirrors slite-readonly-guard.sh.
+# otherwise callable freely.
 #
 # Policy (default-deny):
 #   - Drive read tools (allow-list below) are permitted.

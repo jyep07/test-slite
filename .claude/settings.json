@@ -2,15 +2,6 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "mcp__Slite__.*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/slite-readonly-guard.sh"
-          }
-        ]
-      },
-      {
         "matcher": "mcp__Google_Drive__.*",
         "hooks": [
           {

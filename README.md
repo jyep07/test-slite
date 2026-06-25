@@ -1,6 +1,6 @@
 # test-slite
 
-Testing a Claude routine to sync a GitHub repo with Slite.
+Testing a Claude routine to sync a GitHub repo with Google Docs (see [DOCS-SYNC.md](DOCS-SYNC.md)).
 
 This repository is filled with sample knowledge-base content about **space and
 planets** to exercise the sync workflow.
