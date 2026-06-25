@@ -1,0 +1,57 @@
+{
+  "$comment": "Sync baseline for the Google Docs <-> repo model. repoHash = normalized hash of the repo .md; driveHash = normalized hash of the Doc's text/markdown export. Each side is compared only against its own stored hash. lastSyncedAt is audit-only (Drive modifiedTime is the live trigger).",
+  "lastSyncedGitSha": "32bd35d6a4d6c17d1f90f56e544a44d71f687230",
+  "lastSyncedAt": "2026-06-25T17:05:12Z",
+  "docs": {
+    "planets/mercury.md": {
+      "fileId": "1hAg1VrRpZ1_PIEP1YSKzyEAcxdpr4C1sbrcmu8ldYck",
+      "repoHash": "799ad1b3aae96f7bbb8e5b95ed2462bd12d91359cfcb733e72cc1ac69f5886c0",
+      "driveHash": "61d7ee72b01d94948412aabf6a4bcd1904733da18c8434fbe89a87de6447583c"
+    },
+    "planets/venus.md": {
+      "fileId": "1eK8nynCJGgMTUSorUowMC2Gq5iwz1f5a3_fc5U19VXE",
+      "repoHash": "99030a99183bdbb3ff208493380cf55bab1c2a8a5b8cea0e4e9344a57ad1d093",
+      "driveHash": "3f90f2f1a141e27af9e9508a202088380653ae38532e65330c989025d4750f98"
+    },
+    "planets/earth.md": {
+      "fileId": "1QhygxwDQMu2q5aXRKRKDIbcJZ9rO_2oDdAqVBmkR3UE",
+      "repoHash": "3b8d53cac295c82d74b05967912429d627a1341d4e141913a1f51337e7482aab",
+      "driveHash": "4f0fbfc5d7c03d2b7ed6f3a6d1559cf8c6eacf6ee93d1e1bc012167a5a8128ad"
+    },
+    "planets/mars.md": {
+      "fileId": "1TjIVokUzJhZLbLtXJKf_mqqsFohKfxGd9OM2LwfLUBE",
+      "repoHash": "dc979c558e2c51dc038f5aadb8d8c172b675ff45e24102f793782736ac6cc83b",
+      "driveHash": "3a261d86ef227adb84dc94f27a31a606ab51061071597d5505f906ec0bce51a1"
+    },
+    "planets/jupiter.md": {
+      "fileId": "1WoQcdeWVPMsikoRxkPhkLP_V_8gP-mficqoAQ1Nc8wM",
+      "repoHash": "d816c2770adcb7f0eae335045badcfe83c4814db55f42bba7cbb12638edce930",
+      "driveHash": "13d72ae32c179469c0a5005c7629b69109b338b02e8c33765e5c9eedd01d37b3"
+    },
+    "planets/saturn.md": {
+      "fileId": "16BttKDOManQkArhhRRnd0KaGcrUWkTUPxzIvytZAMtQ",
+      "repoHash": "7c46f331a94a0ed06fa67180ebe9020825aa820a5d6bd4a2d3d4d23055e8ae4f",
+      "driveHash": "37825b43d833143fe089fa654c2034a779264edb4a71d8bddfb1722f6b70c912"
+    },
+    "space-exploration/voyager-program.md": {
+      "fileId": "16IYM1a2bPxGz77DF7ZXO1bsDVtZwGN5P2MzoOB5xZNo",
+      "repoHash": "4d9d3100ef1cf354a208902e3a42b0d2a78c50e2c6562d5dd632cd7838ee2f46",
+      "driveHash": "3877b74e397f01b95495372a39ba1be81a8c4b3f042f7083b62d280643af7d88"
+    },
+    "space-exploration/apollo-program.md": {
+      "fileId": "1USlRcGYdJZACk9NiXnJvPNYOVFsHdkfraOcDpJ2yPUw",
+      "repoHash": "065175927595eb3b70a47857fc42d793ca4e99d97cfad8609bb8688e59255d2d",
+      "driveHash": "4b81fd3a9d2b05ce20712bbd608492c0304ed7836641cfc287b32ba7f8567cc1"
+    },
+    "space-exploration/james-webb-telescope.md": {
+      "fileId": "1BHjg_bt8c7mGOxDlTh6kIa70f4vhZIxlwEOh4DRqmqE",
+      "repoHash": "dcbe1b62cc4e25ed664f8dd84e76cbcbd7ccc6288cd442907b47fad25f5c63e2",
+      "driveHash": "82b56357abc918e5e95b75144c2f8489b64d11fe2b9e95d511f982592a20c2d8"
+    },
+    "space-exploration/the-iss.md": {
+      "fileId": "18zrn7KhwO7_I4JJc4849D-n3iEtpbmrR79Wvy6CCatA",
+      "repoHash": "30e1861765dc6f6d188ea1960204d3014b5df422987dcb0c9127118294cde6e8",
+      "driveHash": "eef874f899e4346ca47fbf31f409fe55a8c9d5c418fc19b9471a643a6df888f3"
+    }
+  }
+}

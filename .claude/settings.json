@@ -9,6 +9,15 @@
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/slite-readonly-guard.sh"
           }
         ]
+      },
+      {
+        "matcher": "mcp__Google_Drive__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/drive-readonly-guard.sh"
+          }
+        ]
       }
     ]
   }

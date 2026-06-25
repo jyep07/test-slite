@@ -1,0 +1,27 @@
+{
+  "$comment": "Maps repo file paths to Google Drive file IDs for the GitHub <-> Google Docs sync. 'root' is the Space KB folder; 'folders' lists the repo doc dirs (used for git-diff filtering); 'driveFolders' maps each repo dir to its Drive subfolder ID.",
+  "root": {
+    "title": "Space KB",
+    "folderId": "1X2QfTPHVrw4WrHcS-0Fh1Swoq1MUC_cY"
+  },
+  "folders": [
+    "planets",
+    "space-exploration"
+  ],
+  "driveFolders": {
+    "planets": "1vd2PTi--f-f0sQQIy0fEsAOnpDvjuxzF",
+    "space-exploration": "12OeshfBKitqIFxXEPxp3npJMyI1pPPUW"
+  },
+  "docs": {
+    "planets/mercury.md": "1hAg1VrRpZ1_PIEP1YSKzyEAcxdpr4C1sbrcmu8ldYck",
+    "planets/venus.md": "1eK8nynCJGgMTUSorUowMC2Gq5iwz1f5a3_fc5U19VXE",
+    "planets/earth.md": "1QhygxwDQMu2q5aXRKRKDIbcJZ9rO_2oDdAqVBmkR3UE",
+    "planets/mars.md": "1TjIVokUzJhZLbLtXJKf_mqqsFohKfxGd9OM2LwfLUBE",
+    "planets/jupiter.md": "1WoQcdeWVPMsikoRxkPhkLP_V_8gP-mficqoAQ1Nc8wM",
+    "planets/saturn.md": "16BttKDOManQkArhhRRnd0KaGcrUWkTUPxzIvytZAMtQ",
+    "space-exploration/voyager-program.md": "16IYM1a2bPxGz77DF7ZXO1bsDVtZwGN5P2MzoOB5xZNo",
+    "space-exploration/apollo-program.md": "1USlRcGYdJZACk9NiXnJvPNYOVFsHdkfraOcDpJ2yPUw",
+    "space-exploration/james-webb-telescope.md": "1BHjg_bt8c7mGOxDlTh6kIa70f4vhZIxlwEOh4DRqmqE",
+    "space-exploration/the-iss.md": "18zrn7KhwO7_I4JJc4849D-n3iEtpbmrR79Wvy6CCatA"
+  }
+}
