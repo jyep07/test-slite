@@ -16,12 +16,6 @@ Profiles of planets in the Solar System.
 - [Jupiter](planets/jupiter.md)
 - [Saturn](planets/saturn.md)
 
-### ✨ [stars-and-galaxies/](stars-and-galaxies/)
-Stars, galaxies, and deep-space objects.
-- [The Sun](stars-and-galaxies/the-sun.md)
-- [The Milky Way](stars-and-galaxies/milky-way.md)
-- [Black Holes](stars-and-galaxies/black-holes.md)
-
 ### 🚀 [space-exploration/](space-exploration/)
 Missions, spacecraft, and human spaceflight.
 - [The Voyager Program](space-exploration/voyager-program.md)
@@ -34,6 +28,5 @@ Missions, spacecraft, and human spaceflight.
 | Folder | Documents |
 |--------|-----------|
 | planets | 6 |
-| stars-and-galaxies | 3 |
 | space-exploration | 4 |
-| **Total** | **13** |
+| **Total** | **10** |
