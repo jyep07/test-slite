@@ -29,6 +29,10 @@ sunrises and sunsets daily.
 - Water is recycled, including moisture from the air and urine.
 - Regular exercise (about 2 hours/day) counteracts muscle and bone loss.
 
+## Fun Facts
+
+- The ISS is the largest human-made object ever placed in orbit.
+
 ## Legacy and Future
 
 Continuously occupied for over two decades, the ISS represents the longest
