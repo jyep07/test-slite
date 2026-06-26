@@ -1,1 +1,15 @@
-{ "scanGitSha": "", "to_slite": [], "from_comments": [] }
+{
+  "scanGitSha": "6986a3f2acedc38a47e18ef8323453db716efa8d",
+  "to_slite": [],
+  "from_comments": [
+    {
+      "noteId": "PI1LZRVkJ2oRfV",
+      "threadId": "1Zio_QjXC5fMwr",
+      "path": "planets/saturn.md",
+      "author": "Jessica Yep",
+      "comment": "change to 'noted'.",
+      "anchoredText": "famous ",
+      "summary": "Replace 'famous' with 'noted' in the opening sentence"
+    }
+  ]
+}

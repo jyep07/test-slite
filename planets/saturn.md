@@ -1,6 +1,6 @@
 # Saturn
 
-6th planet from the Sun and the second largest, famous for its spectacular ring system.
+6th planet from the Sun and the second largest, noted for its spectacular ring system.
 
 ## Quick Facts
 
