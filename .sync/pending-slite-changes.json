@@ -1,1 +1,15 @@
-{ "scanGitSha": "", "to_slite": [], "from_comments": [] }
+{
+  "scanGitSha": "c810d5e360e331601189da10c6d060ef3dcdd275",
+  "to_slite": [],
+  "from_comments": [
+    {
+      "noteId": "PI1LZRVkJ2oRfV",
+      "threadId": "6LPLIZJcVtGP1S",
+      "path": "planets/saturn.md",
+      "author": "Jessica Yep",
+      "comment": "can delete.",
+      "anchoredText": " — so light that it would float in water if a large enough ocean existed.",
+      "summary": "Delete the 'so light it would float in water if a large enough ocean existed' clause from the Overview paragraph, per Jessica's comment."
+    }
+  ]
+}
