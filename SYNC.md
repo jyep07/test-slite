@@ -188,6 +188,14 @@ base→repo and base→body diffs in the PR; do not auto-apply. Report only.
 > PreToolUse hook blocks every Slite write tool (including comment resolves), so
 > propose changes only — never apply them to Slite.
 >
+> **0. Check out the working branch first.** Routines clone `main`, but the
+> comment-driven sync lives on `claude/slite-comment-sync` (`main` still carries the
+> older body-hash version of `SYNC.md`/`sync-detect.sh`). Before doing anything else,
+> run `git fetch origin claude/slite-comment-sync && git checkout claude/slite-comment-sync`.
+> Do all work on this branch and never commit to `main`. (The read-only guard in
+> `.claude/settings.json` is identical on `main`, so it is already active at session
+> start — the checkout just swaps in the correct comment-driven tooling and state.)
+>
 > **1. Detect repo-side changes (deterministic, no Slite calls).** Run
 > `bash .sync/sync-detect.sh detect`. Trust its `repoChanged[]` for the repo side —
 > do **not** re-scan files yourself.
@@ -233,13 +241,15 @@ base→repo and base→body diffs in the PR; do not auto-apply. Report only.
 > **5. Stale-cycle guard.** Check open PRs. If any open PR's head branch starts with
 > `claude/sync-` or `claude/baseline-`, STOP — a prior cycle hasn't finished. End the run.
 >
-> **6. Open the PR.** Create branch `claude/sync-<YYYY-MM-DD>`, commit the repo-side
-> edits (comment-driven file edits, new/deleted files) plus the updated
-> `.sync/pending-slite-changes.json` (`scanGitSha` = step 1's `headSha`), and open a PR.
-> The PR body must list, per doc, the direction (git→Slite, comment→both, or conflict),
-> and for each comment-driven item quote the comment + author + threadId so the reviewer
-> can sanity-check the suggestion. Do **not** modify `.sync/state.json` and do **not**
-> write to Slite — those happen only after merge (Routine B).
+> **6. Open the PR.** Create branch `claude/sync-<YYYY-MM-DD>` **off
+> `claude/slite-comment-sync`**, commit the repo-side edits (comment-driven file edits,
+> new/deleted files) plus the updated `.sync/pending-slite-changes.json`
+> (`scanGitSha` = step 1's `headSha`), and open a PR **with base branch
+> `claude/slite-comment-sync` (NOT `main`)**. The PR body must list, per doc, the
+> direction (git→Slite, comment→both, or conflict), and for each comment-driven item
+> quote the comment + author + threadId so the reviewer can sanity-check the suggestion.
+> Do **not** modify `.sync/state.json` and do **not** write to Slite — those happen
+> only after merge (Routine B).
 
 ## Routine B — `sync-apply`
 
@@ -253,10 +263,17 @@ not add this var to Routine A's.
 
 **Prompt:**
 
-> A sync PR was just merged. Read `.sync/pending-slite-changes.json` — it has
-> `scanGitSha`, `to_slite` (git→Slite changes), and `from_comments` (comment-driven
-> edits already applied to the repo files in this PR), plus `.sync/state.json` and
-> `.sync/slite-map.json`.
+> A sync PR was just merged.
+>
+> **0. Check out the working branch first.** Routines clone `main`, but the merged
+> sync content and the comment-driven tooling live on `claude/slite-comment-sync`
+> (the sync PR merged *into* that branch, not `main`). Run
+> `git fetch origin claude/slite-comment-sync && git checkout claude/slite-comment-sync`
+> before anything else, and do all work there — never commit to `main`.
+>
+> Then read `.sync/pending-slite-changes.json` — it has `scanGitSha`, `to_slite`
+> (git→Slite changes), and `from_comments` (comment-driven edits already applied to
+> the repo files in this PR), plus `.sync/state.json` and `.sync/slite-map.json`.
 >
 > 1. **Apply each `to_slite` entry to Slite:** `update-note` for `"update"`;
 >    `create-note` (under the folder id from `slite-map.json` → `folders`) for
@@ -284,9 +301,11 @@ not add this var to Routine A's.
 > 4. **Reset** `.sync/pending-slite-changes.json` to
 >    `{ "scanGitSha": "", "to_slite": [], "from_comments": [] }`.
 > 5. **Commit** the updated `state.json`, `slite-map.json`, and reset change-set to a
->    **new branch `claude/baseline-<YYYY-MM-DD-HHMM>`** (must NOT contain "sync"),
->    open a PR "Baseline update for <date>", then **merge it yourself via the GitHub
->    API** (`merge_pull_request`). Do not commit to `main` directly.
+>    **new branch `claude/baseline-<YYYY-MM-DD-HHMM>`** (must NOT contain "sync") cut
+>    **off `claude/slite-comment-sync`**, open a PR "Baseline update for <date>"
+>    **with base branch `claude/slite-comment-sync` (NOT `main`)**, then **merge it
+>    yourself via the GitHub API** (`merge_pull_request`). Never commit to or target
+>    `main`.
 >
 > Advancing `lastSyncedGitSha` to `scanGitSha` (not HEAD) is deliberate: a blanket
 > advance to HEAD would hide an unrelated repo edit made between Routine A's scan and
