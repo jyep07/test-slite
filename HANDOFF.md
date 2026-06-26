@@ -61,8 +61,25 @@ SYNC.md                              full design + Routine A/B prompts (comment-
   threads + `resolved` flag; `get-comment-thread-on-note(noteId, threadId)`.
 - Writes (Routine B, `SYNC_ALLOW_WRITES=1`): `resolve-comment-thread(threadId)`,
   `reply-to-comment-thread(threadId, content)`, `create-comment-thread`,
-  `update-note` (body). Anchored comments appear inline in the note's sliteml as
+  targeted block edits (`modify-block`/`modify-range`/`remove-blocks`), `update-note`
+  (body). Anchored comments appear inline in the note's sliteml as
   `<comment id="threadId">target text</comment>`.
+
+### Gotcha: orphaned comments + full-body overwrites (learned the hard way)
+
+- A full-body `update-note(noteId, <whole markdown>)` **regenerates every block and
+  drops all `<comment>` anchors** on the note — orphaning even threads on text you
+  didn't touch. Routine B therefore syncs bodies with **targeted** edits
+  (`modify-block`/`modify-range`/`remove-blocks`) and preserves `<comment id="…">`
+  spans; full-body `update-note` only when the note has no threads.
+- When the edit **deletes the exact text an anchored thread points at**, that thread
+  becomes **orphaned**: Slite keeps it via the API (`resolved: true`, `archivedAt:
+  null`, comments intact) but hides it from **both** the active and resolved sidebar
+  views — it has no text to attach to. This is unavoidable for delete-the-anchor
+  requests; resolve order doesn't matter.
+- So Routine B also leaves a **note-level (unanchored) confirmation comment**
+  (`create-comment-thread` with no `blockId`/`sliteml`) quoting the request — it stays
+  visible in the UI regardless. Git (the sync PR + commit) is the canonical audit trail.
 
 ## Conventions to preserve
 

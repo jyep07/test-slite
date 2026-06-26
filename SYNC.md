@@ -275,19 +275,41 @@ not add this var to Routine A's.
 > (git→Slite changes), and `from_comments` (comment-driven edits already applied to
 > the repo files in this PR), plus `.sync/state.json` and `.sync/slite-map.json`.
 >
-> 1. **Apply each `to_slite` entry to Slite:** `update-note` for `"update"`;
+> 1. **Apply each `to_slite` entry to Slite:** for `"update"`, sync the body with a
+>    **targeted block edit** — `get-note(noteId, sliteml)`, then `modify-block` /
+>    `modify-range` / `remove-blocks` on only the blocks that differ from the merged
+>    repo file, preserving every `<comment id="…">` anchor. Fall back to a full-body
+>    `update-note` only when the note has **no** comment threads (a full-body overwrite
+>    regenerates all blocks and drops every comment anchor — see step 2's note).
 >    `create-note` (under the folder id from `slite-map.json` → `folders`) for
 >    `"create"`, writing the new noteId back into `slite-map.json` → `docs` and the
 >    entry; `archive-note` for `"archive"`, then remove that doc from
 >    `slite-map.json` → `docs`.
-> 2. **Apply each `from_comments` entry (both sides + resolve):**
->    - Read the now-merged repo file at `path` and `update-note(noteId, <that content>)`
->      so the Slite body matches the repo.
->    - `reply-to-comment-thread(threadId, "Applied in the sync PR — see <path>.")`
->      (optional but recommended for an audit trail).
->    - `resolve-comment-thread(threadId)` so the request is closed and never
->      reprocessed. (For any "needs clarification" item from the PR body, instead
->      `reply-to-comment-thread` asking for specifics and leave it unresolved.)
+> 2. **Apply each `from_comments` entry (targeted body edit → durable confirmation → resolve):**
+>    - **Sync the body with a targeted block edit, not a full-document overwrite.**
+>      `get-note(noteId, sliteml)`, find the block(s) that differ from the now-merged
+>      repo file at `path`, and apply only those with `modify-block` / `modify-range`
+>      (or `remove-blocks` for a pure deletion), preserving every `<comment id="…">`
+>      span on blocks you rewrite. Do **not** `update-note` the whole body: it
+>      regenerates all blocks and drops every comment anchor, orphaning even threads on
+>      text you didn't touch. (Full-body `update-note` is acceptable only if the note
+>      has no comment threads at all.)
+>    - **Leave a note-level confirmation comment** as the durable, UI-visible record:
+>      `create-comment-thread(noteId, content)` with **no** `blockId`/`sliteml` so it is
+>      a global (unanchored) thread. Quote the request, e.g.
+>      `Synced from repo: applied "<verbatim comment>" (requested by <author>) — see <path> in the sync PR.`
+>    - `reply-to-comment-thread(threadId, "Applied in the sync PR — see <path>.")` on the
+>      original thread, then `resolve-comment-thread(threadId)` so the request is closed
+>      and never reprocessed. (For any "needs clarification" item from the PR body,
+>      instead `reply-to-comment-thread` asking for specifics, leave it unresolved, and
+>      skip the body edit + confirmation for that doc.)
+>
+>    > **Why the unanchored confirmation:** when the edit *deletes* the text an anchored
+>    > thread points at, the thread becomes **orphaned** — Slite keeps it via the API
+>    > (`resolved: true`, not archived) but drops it from *both* the active and resolved
+>    > sidebar views, since it has no text to attach to (resolving earlier or later
+>    > doesn't change this). The global confirmation thread stays visible regardless;
+>    > git (the sync PR + commit) remains the canonical audit trail.
 > 3. **Advance `state.json`:**
 >    - Set `lastSyncedGitSha` = `scanGitSha` (the sha Routine A diffed against — **not**
 >      HEAD), so any unrelated repo doc edited between the scan and this merge is still
