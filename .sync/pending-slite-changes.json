@@ -1,15 +1,1 @@
-{
-  "scanGitSha": "f47a48235b042766cbd4133868bff8e5c79f3457",
-  "to_slite": [],
-  "from_comments": [
-    {
-      "noteId": "JuInoGYE8v5jTV",
-      "threadId": "vlMMjJi-8GCgvy",
-      "path": "space-exploration/the-iss.md",
-      "author": "Jessica Yep",
-      "comment": "add fun facts. / add that it's the largest human-made object in orbit.",
-      "anchoredText": "Life ",
-      "summary": "Added ## Fun Facts section with: 'The ISS is the largest human-made object ever placed in orbit.'"
-    }
-  ]
-}
+{ "scanGitSha": "", "to_slite": [], "from_comments": [] }
