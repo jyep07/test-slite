@@ -17,7 +17,7 @@
 
 ## Overview
 
-Saturn is a gas giant composed mainly of hydrogen and helium. It is the least dense planet in the Solar System — so light that it would float in water if a large enough ocean existed. Its low density gives it a noticeably flattened, oblate shape.
+Saturn is a gas giant composed mainly of hydrogen and helium. It is the least dense planet in the Solar System. Its low density gives it a noticeably flattened, oblate shape.
 
 ## Notable Features
 
