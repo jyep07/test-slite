@@ -238,11 +238,11 @@ are truly contradictory and no defensible merge exists.
 
 - Reads (Routine A, allowed by guard): `list-comment-threads(noteId)` → threads +
   `resolved` flag; `get-comment-thread-on-note(noteId, threadId)`.
-- Writes (Routine B, `SYNC_ALLOW_WRITES=1`): `resolve-comment-thread`,
-  `reply-to-comment-thread`, `create-comment-thread`, targeted block edits
-  (`modify-block` / `modify-range` / `remove-blocks`), `update-note`. Anchored
-  comments appear inline in the note's sliteml as
-  `<comment id="threadId">target text</comment>`.
+- Writes (Routine B, `SYNC_ALLOW_WRITES=1`): `reply-to-comment-thread`,
+  `resolve-comment-thread`, targeted block edits (`modify-block` / `modify-range` /
+  `remove-blocks`), `update-note`. Routine B deliberately does **not**
+  `create-comment-thread` — see the gotcha below. Anchored comments appear inline in
+  the note's sliteml as `<comment id="threadId">target text</comment>`.
 
 ### Gotcha: orphaned comments + full-body overwrites (learned the hard way)
 
@@ -256,9 +256,15 @@ are truly contradictory and no defensible merge exists.
   null`, comments intact) but hides it from **both** the active and resolved sidebar
   views — it has no text to attach to. Unavoidable for delete-the-anchor requests;
   resolve order doesn't matter.
-- So Routine B also leaves a **note-level (unanchored) confirmation comment**
-  (`create-comment-thread` with no `blockId`/`sliteml`) quoting the request — it stays
-  visible in the UI regardless. Git (the sync PR + commit) is the canonical audit trail.
+- Routine B closes each request by **replying to the original thread and then
+  resolving it**, which files it under Slite's **Resolved comments** view. It must
+  **not** `create-comment-thread` to record the change: a new thread is **unresolved by
+  default**, so the next Routine A scan (which keys on `resolved: false`) would re-detect
+  it as a fresh change request — a feedback loop. The orphan limitation above therefore
+  stands unmitigated for delete-the-anchor edits (even the resolved thread drops out of
+  both sidebar views); that's accepted — git (the sync PR + commit) is the canonical
+  audit trail, and we do not paper over it with a new comment that would pollute the
+  next run.
 
 ---
 
@@ -397,7 +403,7 @@ not add this var to Routine A's.
 >    `"create"`, writing the new noteId back into `slite-map.json` → `docs` and the
 >    entry; `archive-note` for `"archive"`, then remove that doc from
 >    `slite-map.json` → `docs`.
-> 2. **Apply each `from_comments` entry (targeted body edit → durable confirmation → resolve):**
+> 2. **Apply each `from_comments` entry (targeted body edit → reply → resolve):**
 >    - **Sync the body with a targeted block edit, not a full-document overwrite.**
 >      `get-note(noteId, sliteml)`, find the block(s) that differ from the now-merged
 >      repo file at `path`, and apply only those with `modify-block` / `modify-range`
@@ -407,17 +413,22 @@ not add this var to Routine A's.
 >      text you didn't touch. (Full-body `update-note` is acceptable only if the note
 >      has no comment threads at all.)
 >    - `reply-to-comment-thread(threadId, "Applied in the sync PR — see <path>.")` on the
->      original thread, then `resolve-comment-thread(threadId)` so the request is closed
->      and never reprocessed. (For any "needs clarification" item from the PR body,
->      instead `reply-to-comment-thread` asking for specifics, leave it unresolved, and
->      skip the body edit + confirmation for that doc.)
+>      **original** thread (for a conflict item, say so — e.g. "Resolved a sync conflict
+>      for <path>; this note now matches the merged file."), then
+>      `resolve-comment-thread(threadId)` so the request closes into Slite's **Resolved
+>      comments** view and is never reprocessed. **Do not `create-comment-thread`** — a
+>      new thread is unresolved by default and the next Routine A would re-detect it as a
+>      change request. (For any "needs clarification" item from the PR body, instead
+>      `reply-to-comment-thread` asking for specifics and leave it unresolved — skip the
+>      body edit for that doc.)
 >
->    > **Why the unanchored confirmation:** when the edit *deletes* the text an anchored
->    > thread points at, the thread becomes **orphaned** — Slite keeps it via the API
->    > (`resolved: true`, not archived) but drops it from *both* the active and resolved
->    > sidebar views, since it has no text to attach to (resolving earlier or later
->    > doesn't change this). The global confirmation thread stays visible regardless;
->    > git (the sync PR + commit) remains the canonical audit trail.
+>    > **Reply + resolve the original thread; never open a new one.** Replying then
+>    > resolving files the request under **Resolved comments** without creating work for
+>    > the next run. If the edit *deleted* the thread's anchored text, the thread orphans
+>    > out of *both* sidebar views even when resolved (Slite has no text to anchor it to;
+>    > resolve order doesn't change this) — unavoidable, and git is the audit trail. A new
+>    > comment would stay visible but would be unresolved, so the next Routine A would
+>    > treat it as a fresh request — which is exactly why we don't create one.
 > 3. **Advance `state.json`:**
 >    - Set `lastSyncedGitSha` = `scanGitSha` (the sha Routine A diffed against — **not**
 >      HEAD), so any unrelated repo doc edited between the scan and this merge is still
@@ -514,10 +525,10 @@ For the first run, drive it by hand and gate Routine B:
    a git-only change shows a `to_slite` entry. A quiet run (no repo changes, no
    unresolved comments) must open **no** PR. **Do not run Routine B yet** — review the PR.
 4. Add **Routine B** + the merge trigger, merge the sync PR, and verify: the Slite note
-   body updated, **the comment thread is resolved** (and replied to) with a note-level
-   confirmation comment present, `state.json` advanced (`lastSyncedGitSha` =
-   `scanGitSha`, hashes updated for the changed docs only), and the baseline PR
-   auto-merged.
+   body updated, **the original comment thread is replied to and resolved** (it shows
+   under Slite's **Resolved comments**; **no new unresolved comment was created**),
+   `state.json` advanced (`lastSyncedGitSha` = `scanGitSha`, hashes updated for the
+   changed docs only), and the baseline PR auto-merged.
 
 ## Re-seeding `state.json` (if it drifts)
 
