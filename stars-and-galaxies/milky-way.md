@@ -14,7 +14,7 @@ The Milky Way is the barred spiral galaxy that contains our Solar System.
 
 ## Overview
 
-The Milky Way is one of hundreds of billions of galaxies in the observable universe. Our Solar System sits in one of its spiral arms — the Orion Arm — about 26,000 light-years from the galactic center. The Sun takes roughly 225–250 million years to complete one orbit of the galaxy (a "galactic year").
+The Milky Way is one of hundreds of billions of galaxies in the observable universe. It contains hundreds of billions of stars. Our Solar System sits in one of its spiral arms — the Orion Arm — about 26,000 light-years from the galactic center. The Sun takes roughly 225–250 million years to complete one orbit of the galaxy (a "galactic year").
 
 ## Structure
 

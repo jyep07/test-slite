@@ -1,6 +1,6 @@
 # Mars
 
-#4 planet from the Sun, known as the "Red Planet" for the iron
+Fourth planet from the Sun, known as the "Red Planet" for the iron
 oxide (rust) that covers its surface.
 
 ## Quick Facts
