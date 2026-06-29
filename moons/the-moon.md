@@ -1,6 +1,6 @@
 # The Moon
 
-The Moon is Earth's only natural satellite and the fifth largest moon in the Solar System.
+The Moon is Earth's only natural satellite and the fifth largest moon in the Solar System. It's about 27% the size of Earth.
 
 ## Some Quick Facts
 
