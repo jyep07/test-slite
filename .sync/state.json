@@ -1,6 +1,6 @@
 {
   "lastSyncedGitSha": "681df45d721a1015a6c3851c407278fef9ffd471",
-  "lastSyncedAt": "2026-06-29T17:22:54Z",
+  "lastSyncedAt": "2026-06-29T17:29:10Z",
   "docs": {
     "moons/europa.md": {
       "noteId": "L4gCAfhOBqbyO1",
@@ -19,8 +19,8 @@
     },
     "planets/earth.md": {
       "noteId": "GHF_EZuuNsbsOx",
-      "repoHash": "3b8d53cac295c82d74b05967912429d627a1341d4e141913a1f51337e7482aab",
-      "sliteHash": "ecfeb7722f3856f3f519bc21bd12fe1d665cc3ae569fd022333583a897beffd0"
+      "repoHash": "a8628198342b185c47c1815fcbbafb4298eb8ccb4686b8fa600aa3aa859529d1",
+      "sliteHash": "a8628198342b185c47c1815fcbbafb4298eb8ccb4686b8fa600aa3aa859529d1"
     },
     "planets/jupiter.md": {
       "noteId": "s5_Qtl8-ZyrnMo",
