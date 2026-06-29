@@ -1,1 +1,21 @@
-{ "scanGitSha": "", "to_slite": [], "from_comments": [] }
+{
+  "scanGitSha": "aacee5be105112b15364020f2961ced2cb24b956",
+  "to_slite": [],
+  "from_comments": [
+    {
+      "noteId": "0sw78vhuvqZ0UU",
+      "threadId": "Ek0za0uTRG5PKy",
+      "path": "space-exploration/james-webb-telescope.md",
+      "author": "Jessica Yep",
+      "comment": "delete this phrase.",
+      "anchoredText": "The James Webb Space Telescope (JWST) is",
+      "summary": "Deleted opening phrase per comment; defaulted to comment over repo edit since both touched the same span",
+      "conflict": {
+        "repoDiff": "--- a/space-exploration/james-webb-telescope.md\n+++ b/space-exploration/james-webb-telescope.md\n@@ -3,4 +3,4 @@\n-The James Webb Space Telescope (JWST) is the largest and most powerful space\n+over here: James Webb Space Telescope (JWST) is the largest and most powerful space\n telescope ever built, launched on December 25, 2021.",
+        "sliteDiff": "No direct Slite body edit; comment intent: delete the phrase 'The James Webb Space Telescope (JWST) is'",
+        "resolution": "Defaulted to comment's value (delete phrase); repo-side wording kept as alternative",
+        "alternative": "over here: James Webb Space Telescope (JWST) is the largest and most powerful space telescope ever built, launched on December 25, 2021."
+      }
+    }
+  ]
+}
