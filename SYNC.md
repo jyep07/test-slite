@@ -349,11 +349,31 @@ are truly contradictory and no defensible merge exists.
 > **4. No-op check.** If `repoChanged` is empty, there are no unresolved comments, and
 > no conflicts, STOP: do not create a branch, commit, or open a PR. End the run.
 >
-> **5. Stale-cycle guard.** Check open PRs. If any open PR's head branch starts with
-> `claude/sync-` or `claude/baseline-`, STOP — a prior cycle hasn't finished. End the run.
+> **5. Supersede an open sync PR, or guard.** List open PRs whose base is
+> `claude/slite-comment-sync`. Because `state.json` only advances after a merge, this
+> run has already re-detected the **full cumulative** change-set (every still-unresolved
+> comment + every repo change since `lastSyncedGitSha`) — so a fresh PR from this run is
+> a complete replacement for any un-merged one, not a delta. Decide per open PR:
+> - **Open `claude/baseline-*` PR → STOP.** Routine B is mid-cycle (applying Slite
+>   writes / advancing the baseline); do not interfere. End the run.
+> - **Open `claude/sync-*` PR that a human has touched** — any commit by an author other
+>   than this routine, or any review / review comment → **STOP and report** "a reviewer
+>   is working on PR #N; not superseding" in the run output. Don't clobber their tweaks
+>   (the conflict-resolution edits are meant to be hand-adjusted). End the run.
+> - **Open `claude/sync-*` PR with only this routine's own commit (untouched)** →
+>   **supersede it:** close PR #N and delete its `claude/sync-*` head branch, then
+>   continue to step 6 to open one fresh PR containing everything. Reference it in the
+>   new PR body ("Replaces #N — combines its changes with this run's").
+>
+> (Superseding closes + reopens by design, per the requirement that the approver review
+> a single PR. The alternative — force-pushing the cumulative set onto the open PR's
+> branch to keep one PR number — has the same clobber risk and is why the human-touched
+> guard above exists either way.)
 >
 > **6. Open the PR.** Create branch `claude/sync-<YYYY-MM-DD>` **off
-> `claude/slite-comment-sync`**, commit the repo-side edits (comment-driven file edits,
+> `claude/slite-comment-sync`** (if you superseded a same-day branch in step 5, delete
+> it first so the name is free, or append `-HHMM`), commit the repo-side edits
+> (comment-driven file edits,
 > **conflict-reconciliation file edits**, new/deleted files) plus the updated
 > `.sync/pending-slite-changes.json` (`scanGitSha` = step 1's `headSha`), and open a PR
 > **with base branch `claude/slite-comment-sync` (NOT `main`)**. The PR body must list,
