@@ -370,10 +370,6 @@ not add this var to Routine A's.
 >      regenerates all blocks and drops every comment anchor, orphaning even threads on
 >      text you didn't touch. (Full-body `update-note` is acceptable only if the note
 >      has no comment threads at all.)
->    - **Leave a note-level confirmation comment** as the durable, UI-visible record:
->      `create-comment-thread(noteId, content)` with **no** `blockId`/`sliteml` so it is
->      a global (unanchored) thread. Quote the request, e.g.
->      `Synced from repo: applied "<verbatim comment>" (requested by <author>) — see <path> in the sync PR.`
 >    - `reply-to-comment-thread(threadId, "Applied in the sync PR — see <path>.")` on the
 >      original thread, then `resolve-comment-thread(threadId)` so the request is closed
 >      and never reprocessed. (For any "needs clarification" item from the PR body,
