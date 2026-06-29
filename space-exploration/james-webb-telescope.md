@@ -1,7 +1,6 @@
 # James Webb Space Telescope
 
-over here: James Webb Space Telescope (JWST) is the largest and most powerful space
-telescope ever built, launched on December 25, 2021.
+The largest and most powerful space telescope ever built, launched on December 25, 2021.
 
 ## Quick Facts
 
