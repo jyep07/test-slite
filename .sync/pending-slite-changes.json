@@ -1,12 +1,1 @@
-{
-  "scanGitSha": "22d70d2ab5205551bcce512c82a2ab1780f29210",
-  "to_slite": [
-    {
-      "action": "update",
-      "path": "moons/titan.md",
-      "noteId": "tBRYmBvCQMkoXY",
-      "newContent": "# Titan\n\nYay.\n\nTitan is Saturn's largest moon and the second largest in the Solar System —\nthe only moon with a substantial atmosphere.\n\n## Quick Facts\n\n| Property | Value |\n|----------|-------|\n| Parent planet | Saturn |\n| Diameter | 5,150 km |\n| Average distance from Saturn | 1.22 million km |\n| Orbital period | 15.9 days |\n| Surface temperature | ~−179 °C |\n\n## Overview\n\nTitan is larger than the planet Mercury and is the only known world besides\nEarth with stable liquid on its surface. Its dense, nitrogen-rich atmosphere is\nhazy with orange hydrocarbons. Instead of water, Titan has lakes and rivers of\nliquid methane and ethane.\n\n## Notable Features\n\n- **Methane cycle** — Titan has a \"hydrological\" cycle of methane rain, rivers,\n  lakes, and clouds, analogous to Earth's water cycle.\n- **Kraken Mare** — the largest known liquid methane sea, comparable in size to\n  the Caspian Sea.\n- A possible subsurface water ocean beneath the icy crust.\n\n## Exploration\n\nThe **Huygens probe** landed on Titan in 2005 — the most distant landing ever\nachieved. NASA's **Dragonfly** rotorcraft mission, planned for the 2030s, will\nfly across Titan's surface to study its chemistry and habitability.\n"
-    }
-  ],
-  "from_comments": []
-}
+{ "scanGitSha": "", "to_slite": [], "from_comments": [] }
