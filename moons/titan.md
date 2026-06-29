@@ -1,5 +1,7 @@
 # Titan
 
+Yay.
+
 Titan is Saturn's largest moon and the second largest in the Solar System —
 the only moon with a substantial atmosphere.
 
