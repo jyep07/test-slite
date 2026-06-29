@@ -2,7 +2,7 @@
 
 Earth is the third planet from the Sun and the only known astronomical object
 
-that has life on it!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+that has life on it.
 
 ## Quick Facts
 
