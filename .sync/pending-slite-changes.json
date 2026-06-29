@@ -1,5 +1,40 @@
 {
-  "scanGitSha": "",
-  "to_slite": [],
-  "from_comments": []
+  "scanGitSha": "d1831419c9dff583d6ba186240e84a70bea9a7f2",
+  "to_slite": [
+    {
+      "action": "update",
+      "path": "moons/the-moon.md",
+      "noteId": "A53Qrw6OnyVuh4",
+      "newContent": "# The Moon\n\nThe Moon is Earth's only natural satellite and the fifth largest moon in the Solar System. It's about 27% the size of Earth.\n\n## Some Quick Facts\n\n| Property                    | Value                         |\n| --------------------------- | ----------------------------- |\n| Parent planet               | Earth                         |\n| Diameter                    | 3,474 km                      |\n| Mass                        | 7.35 × 10²² kg (0.0123 Earth) |\n| Average distance from Earth | 384,400 km                    |\n| Orbital period              | 27.3 days                     |\n| Surface gravity             | 1.62 m/s² (1/6 of Earth)      |\n\n## Overview\n\nThe Moon formed about 4.5 billion years ago, likely from debris left after a Mars-sized body collided with the early Earth. It is tidally locked. The Moon's gravity drives ocean tides and helps stabilize Earth's axial tilt.\n\n## Notable Features\n\n- **Maria** — dark basaltic plains formed by ancient volcanic eruptions, once mistaken for seas.\n- **The far side** — heavily cratered and never visible from Earth, first photographed by the Soviet Luna 3 in 1959.\n- **Regolith** — a layer of fine dust and broken rock covering the surface.\n\n## Exploration\n\nThe Moon is the only celestial body beyond Earth that humans have visited. **Apollo 11** landed the first humans in 1969, and the **Artemis program** aims to return astronauts, including the first woman, to the lunar surface.\n"
+    }
+  ],
+  "from_comments": [
+    {
+      "noteId": "e_pXodM6RoMqi8",
+      "threadId": "GCVlDfB2SFQzBS",
+      "path": "planets/mars.md",
+      "author": "Jessica Yep",
+      "comment": "delete.",
+      "anchoredText": "Mars",
+      "summary": "Remove duplicate '# Mars' heading present in Slite note (already absent from repo; no repo edit needed)"
+    },
+    {
+      "noteId": "e_pXodM6RoMqi8",
+      "threadId": "E2HBn04FSwKWWV",
+      "path": "planets/mars.md",
+      "author": "Jessica Yep",
+      "comment": "Fourth planet.",
+      "anchoredText": "#4 planet ",
+      "summary": "Replace '#4 planet' with 'Fourth planet' in the intro line of planets/mars.md"
+    },
+    {
+      "noteId": "VRuFvQ2bSF6X2C",
+      "threadId": "ih421jb_ObH-o6",
+      "path": "stars-and-galaxies/milky-way.md",
+      "author": "Jessica Yep",
+      "comment": "add that the milky way has hundreds of billions of stars.",
+      "anchoredText": ".",
+      "summary": "Added 'It contains hundreds of billions of stars.' sentence to the Overview paragraph in stars-and-galaxies/milky-way.md"
+    }
+  ]
 }
