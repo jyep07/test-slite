@@ -114,7 +114,9 @@ SYNC.md                              this file — design + runbook + Routine A/
 
 `pending-slite-changes.json` item shapes:
 - `to_slite`: `{ action: "update"|"create"|"archive", path, noteId, newContent }`
-- `from_comments`: `{ noteId, threadId, path, author, comment, anchoredText, summary }`
+- `from_comments`: `{ noteId, threadId, path, author, comment, anchoredText, summary }`,
+  plus an optional `conflict: { repoDiff, sliteDiff, resolution, alternative }` block on
+  items that reconcile a conflict (the merged repo file is still the source of truth for B)
 
 ## The baseline — `state.json`
 
@@ -198,22 +200,32 @@ storedRepoHash, newRepoHash, renamedFrom }`. Pure shell + `git` + `python3`, **n
 |:---:|:---:|---|
 | yes | no | git is source → **propose Slite body edit** (`to_slite`) |
 | no | yes | comment is the request → **edit the repo file** (into the PR) **and** queue the Slite body edit + comment resolution (`from_comments`) |
-| yes | yes | **conflict** → report in PR body, change nothing automatically |
+| yes | yes | **conflict** → **propose a reconciliation**: apply a best-effort merged edit to the repo file (in the PR) + queue it, flagged for careful review |
 | no | no | skip |
 | new repo file | — | **create Slite note** under the right folder (`to_slite`, `action: "create"`); map updated by B |
 | repo file deleted | — | **archive the Slite note** (`to_slite`, `action: "archive"`); B drops it from map + state |
 
 **Direct body-edit guard (conflict base = git).** Before applying a comment-driven
 edit, re-fetch the note body and hash it. If it ≠ the stored `sliteHash`, the body was
-edited directly (against the convention) — treat it as a **conflict**: reconstruct the
-base with `git show <lastSyncedGitSha>:<path>` and report the base→repo and base→body
-diffs in the PR; do not auto-apply.
+edited directly (against the convention) — treat it as a **conflict** and handle it
+with the proposed-reconciliation rule below.
+
+**Conflicts propose a fix, they don't just report.** On any conflict, Routine A
+reconstructs the baseline (`git show <lastSyncedGitSha>:<path>`), builds a best-effort
+**merged version of the repo file** (combine the git change and the comment's request;
+on an overlapping span default to the comment's value and record the repo-side value as
+an `alternative`), and **applies that merged version to the repo file** so it lands in
+the PR diff. Agreeing then = merge the PR; disagreeing = edit the file on the branch
+first. Routine A is still read-only on Slite — the proposal is a *git* edit, never a
+Slite write. Only fall back to "needs clarification" (no file edit) when the two sides
+are truly contradictory and no defensible merge exists.
 
 ## Conventions & gotchas
 
 - **Comments = change requests; do not edit Slite bodies directly.** A direct body
-  edit (body hash ≠ stored `sliteHash`) is a **conflict**, reported in the PR, never
-  auto-applied.
+  edit (body hash ≠ stored `sliteHash`) is a **conflict** — Routine A proposes a merged
+  resolution as a concrete repo-file edit in the PR (accept = merge, or tweak first),
+  never a silent Slite write.
 - Human gate = sync-PR merge. Routine A read-only (enforced by the guard); Routine B
   writes with `SYNC_ALLOW_WRITES=1`.
 - Routine B advances `lastSyncedGitSha = scanGitSha` (NOT HEAD); updates only the
@@ -297,13 +309,31 @@ diffs in the PR; do not auto-apply.
 >   If the comment is too vague to act on safely, do **not** edit anything — record
 >   it in the PR body as "needs clarification" (Routine B can reply asking for
 >   specifics) and leave the thread for next time.
-> - **both repo changed AND an unresolved comment on the same doc** → conflict: change
->   nothing; reconstruct the base with `git show <lastSyncedGitSha>:<path>` and record
->   the conflict in the PR body only.
+> - **conflict — both repo changed AND an unresolved comment on the same doc** →
+>   **propose a reconciliation; do not report-only.** Reconstruct the baseline with
+>   `git show <lastSyncedGitSha>:<path>`. Build a **proposed merged version of the repo
+>   file** that takes the git change and the comment's requested change together: apply
+>   both where they touch different text; where they touch the **same** span, default
+>   the file to the **comment's** value (it's an explicit human request) and keep the
+>   repo-side value as `alternative` so the reviewer can swap it back in one edit.
+>   **Apply that merged version to the repo file** (it lands in the PR diff). Then append
+>   to `from_comments`, adding a `conflict` block:
+>   `{ "noteId", "threadId", "path", "author", "comment": "<verbatim>",
+>      "anchoredText": "<target snippet or null>", "summary": "<the merge in one line>",
+>      "conflict": { "repoDiff": "<base→repo unified diff>",
+>                    "sliteDiff": "<base→body diff, or the comment's intent>",
+>                    "resolution": "<one line: how you merged>",
+>                    "alternative": "<repo-side value for any overlapping span, or null>" } }`.
+>   Only fall back to "needs clarification" (leave the file untouched) if the two sides
+>   are truly contradictory and no defensible merge exists — say why in the PR body.
 > - **direct body-edit guard** → for each note with an unresolved comment, hash its
 >   current md export (`get-note` md → temp file → `bash .sync/sync-detect.sh hash`).
->   If it ≠ `sliteHash` in `state.json`, the body was edited directly → conflict;
->   report, don't apply.
+>   If it ≠ `sliteHash` in `state.json`, the body was edited directly → treat it as a
+>   **conflict** and handle it with the proposed-reconciliation rule above: `sliteDiff`
+>   is the base→body diff, the merged file you propose will overwrite the direct body
+>   edit on the Slite side once merged, so fold anything worth keeping from base→body
+>   into the proposed file. (Routine A still writes nothing to Slite — only the repo
+>   file in the PR.)
 > - **new repo file** (`status: added`, not in the map) → `to_slite` with
 >   `"action": "create"` (target folder id from `slite-map.json` → `folders`; leave
 >   `noteId` empty for B).
@@ -318,13 +348,19 @@ diffs in the PR; do not auto-apply.
 >
 > **6. Open the PR.** Create branch `claude/sync-<YYYY-MM-DD>` **off
 > `claude/slite-comment-sync`**, commit the repo-side edits (comment-driven file edits,
-> new/deleted files) plus the updated `.sync/pending-slite-changes.json`
-> (`scanGitSha` = step 1's `headSha`), and open a PR **with base branch
-> `claude/slite-comment-sync` (NOT `main`)**. The PR body must list, per doc, the
-> direction (git→Slite, comment→both, or conflict), and for each comment-driven item
-> quote the comment + author + threadId so the reviewer can sanity-check the suggestion.
-> Do **not** modify `.sync/state.json` and do **not** write to Slite — those happen
-> only after merge (Routine B).
+> **conflict-reconciliation file edits**, new/deleted files) plus the updated
+> `.sync/pending-slite-changes.json` (`scanGitSha` = step 1's `headSha`), and open a PR
+> **with base branch `claude/slite-comment-sync` (NOT `main`)**. The PR body must list,
+> per doc, the direction (git→Slite, comment→both, or conflict). For each comment-driven
+> item quote the comment + author + threadId. For each **conflict**, add a clearly-headed
+> **"⚠ Proposed conflict resolution — review carefully"** block showing: the `repoDiff`
+> (base→repo), the comment (author + threadId), the `sliteDiff` (base→body) when a direct
+> edit was involved, the **proposed merged result now in the file**, and a one-line note
+> on how to tweak it (edit the file on this branch before merging, or swap in the
+> `alternative` value). Make clear the proposal is a real file edit, so **agree = merge;
+> disagree = edit then merge** — and that merging it lets Routine B overwrite the Slite
+> body to match. Do **not** modify `.sync/state.json` and do **not** write to Slite —
+> those happen only after merge (Routine B).
 
 ## Routine B — `sync-apply`
 
