@@ -370,7 +370,7 @@ are truly contradictory and no defensible merge exists.
 > branch to keep one PR number — has the same clobber risk and is why the human-touched
 > guard above exists either way.)
 >
-> **6. Open the PR.** Create branch `claude/sync-<YYYY-MM-DD>` **off
+> **6. Open the PR.** Create branch `claude/sync-<time-MM-DD-YYYY>` **off
 > `claude/slite-comment-sync`** (if you superseded a same-day branch in step 5, delete
 > it first so the name is free, or append `-HHMM`), commit the repo-side edits
 > (comment-driven file edits,
