@@ -1,6 +1,6 @@
 {
-  "lastSyncedGitSha": "681df45d721a1015a6c3851c407278fef9ffd471",
-  "lastSyncedAt": "2026-06-29T17:29:10Z",
+  "lastSyncedGitSha": "aacee5be105112b15364020f2961ced2cb24b956",
+  "lastSyncedAt": "2026-06-29T18:25:58Z",
   "docs": {
     "moons/europa.md": {
       "noteId": "L4gCAfhOBqbyO1",
@@ -54,8 +54,8 @@
     },
     "space-exploration/james-webb-telescope.md": {
       "noteId": "0sw78vhuvqZ0UU",
-      "repoHash": "dcbe1b62cc4e25ed664f8dd84e76cbcbd7ccc6288cd442907b47fad25f5c63e2",
-      "sliteHash": "dcbe1b62cc4e25ed664f8dd84e76cbcbd7ccc6288cd442907b47fad25f5c63e2"
+      "repoHash": "a364e09846d149a1075b8f48ae479a9301fb2d2b94516154c528fdc57e1f8b3a",
+      "sliteHash": "a364e09846d149a1075b8f48ae479a9301fb2d2b94516154c528fdc57e1f8b3a"
     },
     "space-exploration/the-iss.md": {
       "noteId": "JuInoGYE8v5jTV",
