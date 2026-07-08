@@ -1,0 +1,7 @@
+# Code owners for the mentor two-speed review model.
+# PRs touching these paths block until a listed owner approves.
+# Paths with no owner here (e.g. wiki/**) have no required reviewer and can auto-merge.
+
+mentor/**     @jyep07
+.claude/**    @jyep07
+CLAUDE.md     @jyep07
