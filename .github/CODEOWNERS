@@ -2,6 +2,6 @@
 # PRs touching these paths block until an approver on the team signs off.
 # Paths with no owner here (e.g. wiki/**) have no required reviewer and can auto-merge.
 
-mentor/**     @SophiaSpaceInc/Sophia Engineering
-.claude/**    @SophiaSpaceInc/Sophia Engineering
-CLAUDE.md     @SophiaSpaceInc/Sophia Engineering
+mentor/**     @SophiaSpaceInc/Sophia-Engineering
+.claude/**    @SophiaSpaceInc/Sophia-Engineering
+CLAUDE.md     @SophiaSpaceInc/Sophia-Engineering
